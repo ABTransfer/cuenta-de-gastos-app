@@ -914,11 +914,11 @@ function buildExportData(){
   exportShareText=share;
   const header=['Fecha','Categoría','Descripción','Realizado','Caja/Bancos ct','Iniciales','Banco/persona'];
   const firstDay=`01.${String(currentMonth+1).padStart(2,'0')}.${currentYear}`;
-  const rows=[header,[firstDay,'Saldo anterior','',fmt(iniVal),initials,initials,firstBank]];
+  const rows=[header,[firstDay,'Saldo anterior','',iniVal.toFixed(2),initials,initials,firstBank]];
   entries.forEach(e=>{
     const catLabel=EXPORT_LABEL[e.subcategory||e.category]||e.category;
     const amt=parseAmt(e.amount)||0; const signed=e.type==='income'?amt:-amt; const bank=e.payment||firstBank;
-    rows.push([fmtDateExport(e.date),catLabel,e.note||'',fmt(signed),initials,initials,bank]);
+    rows.push([fmtDateExport(e.date),catLabel,e.note||'',signed.toFixed(2),initials,initials,bank]);
   });
   exportTsvText=rows.map(r=>r.join('\t')).join('\n');
 }
