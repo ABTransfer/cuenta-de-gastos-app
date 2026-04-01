@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Cuenta Personal</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#F5F2EC; --surface:#FFFFFF; --surface2:#F0ECE4;
+    --ink:#1A1714; --ink2:#6B6560;
+    --accent:#2D5016; --accent2:#4A7C28;
+    --red:#C0392B; --red-light:#FDF0EF;
+    --green:#2D5016; --green-light:#EFF5EA;
+    --border:#DDD8CF; --radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;font-size:15px;}
+
+  /* LOGIN */
+  #login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:28px;padding:40px 24px;background:var(--bg);}
+  .login-title{font-family:'DM Serif Display',serif;font-size:2.4rem;color:var(--ink);text-align:center;line-height:1.1;}
+  .login-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px 24px;width:100%;max-width:360px;}
+  .login-card .form-group{margin-bottom:14px;}
+  .login-err{color:var(--red);font-size:0.82rem;text-align:center;min-height:18px;margin-top:4px;}
+  .login-hint{color:var(--ink2);font-size:0.78rem;text-align:center;margin-top:12px;}
+  .spinner{display:none;text-align:center;color:var(--ink2);font-size:0.88rem;margin-top:8px;}
+
+  /* LANG */
+  #lang-screen{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:32px;padding:40px 24px;background:var(--bg);}
+  .lang-title{font-family:'DM Serif Display',serif;font-size:2.6rem;color:var(--ink);text-align:center;line-height:1.1;}
+  .lang-btns{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;}
+  .lang-btn{padding:18px 36px;background:var(--surface);border:2px solid var(--border);border-radius:var(--radius);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;color:var(--ink);transition:all 0.2s;display:flex;flex-direction:column;align-items:center;gap:4px;}
+  .lang-btn .flag{font-size:2rem;}
+  .lang-btn:hover{border-color:var(--accent);background:var(--green-light);}
+
+  /* APP */
+  #app{display:none;max-width:480px;margin:0 auto;padding-bottom:90px;}
+  .app-header{background:var(--accent);color:white;padding:16px 20px 14px;position:sticky;top:0;z-index:100;}
+  .header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:8px;}
+  .app-title{font-family:'DM Serif Display',serif;font-size:1.35rem;color:white;flex:1;}
+  .hdr-btn{background:rgba(255,255,255,0.15);border:none;color:white;padding:6px 10px;border-radius:20px;cursor:pointer;font-size:0.76rem;font-family:'DM Sans',sans-serif;font-weight:500;white-space:nowrap;}
+  .hdr-btn:hover{background:rgba(255,255,255,0.28);}
+  .month-nav{display:flex;align-items:center;gap:12px;justify-content:center;}
+  .month-btn{background:rgba(255,255,255,0.2);border:none;color:white;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1.2rem;display:flex;align-items:center;justify-content:center;}
+  .month-btn:hover{background:rgba(255,255,255,0.35);}
+  .month-label{font-family:'DM Serif Display',serif;font-size:1.2rem;color:white;min-width:160px;text-align:center;}
+  .sync-indicator{font-size:0.7rem;color:rgba(255,255,255,0.7);text-align:center;margin-top:4px;min-height:14px;}
+
+  /* BALANCE */
+  .balance-card{background:var(--surface);margin:16px 16px 0;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;}
+  .balance-row{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-bottom:1px solid var(--border);}
+  .balance-row:last-child{border-bottom:none;}
+  .balance-label{font-size:0.82rem;color:var(--ink2);font-weight:500;text-transform:uppercase;letter-spacing:0.04em;}
+  .balance-amount{font-family:'DM Serif Display',serif;font-size:1.25rem;}
+  .amount-pos{color:var(--green);} .amount-neg{color:var(--red);} .amount-neutral{color:var(--ink);}
+  .balance-input-wrap{display:flex;align-items:center;gap:6px;}
+  .balance-inline-input{font-family:'DM Serif Display',serif;font-size:1.2rem;color:var(--ink);border:1.5px solid var(--border);border-radius:8px;padding:4px 10px;width:130px;text-align:right;background:var(--bg);outline:none;}
+  .balance-inline-input:focus{border-color:var(--accent);}
+
+  /* TABS */
+  .tabs{display:flex;margin:16px 16px 0;gap:4px;background:var(--surface2);border-radius:var(--radius);padding:4px;border:1px solid var(--border);}
+  .tab{flex:1;padding:10px 6px;text-align:center;cursor:pointer;border-radius:10px;font-size:0.82rem;font-weight:600;color:var(--ink2);transition:all 0.2s;border:none;background:none;font-family:'DM Sans',sans-serif;}
+  .tab.active{background:var(--surface);color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,0.1);}
+
+  /* SECTIONS */
+  .section{margin:14px 16px 0;}
+  .section-header{font-family:'DM Serif Display',serif;font-size:1.05rem;color:var(--ink);padding:10px 0 7px;display:flex;align-items:center;justify-content:space-between;}
+  .section-total{font-size:0.88rem;font-family:'DM Sans',sans-serif;font-weight:600;padding:3px 10px;border-radius:20px;}
+  .total-pos{background:var(--green-light);color:var(--green);}
+  .total-neg{background:var(--red-light);color:var(--red);}
+  .total-zero{background:var(--surface2);color:var(--ink2);}
+
+  /* ENTRIES */
+  .entries-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;}
+  .entry-row{display:flex;align-items:center;padding:11px 12px;border-bottom:1px solid var(--border);gap:8px;transition:background 0.15s;}
+  .entry-row:last-child{border-bottom:none;}
+  .entry-row:hover{background:var(--bg);}
+  .entry-cat{flex:1;min-width:0;}
+  .entry-name{font-size:0.86rem;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .entry-meta{font-size:0.72rem;color:var(--ink2);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .entry-date{font-size:0.72rem;color:var(--ink2);white-space:nowrap;}
+  .entry-amount{font-weight:600;font-size:0.93rem;white-space:nowrap;}
+  .icon-btn{background:none;border:none;cursor:pointer;color:var(--border);font-size:1rem;padding:2px 3px;line-height:1;transition:color 0.15s;}
+  .icon-btn.edit:hover{color:var(--accent);}
+  .icon-btn.del:hover{color:var(--red);}
+  .subcat-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink2);padding:7px 14px 4px;background:var(--surface2);border-bottom:1px solid var(--border);}
+  .empty-state{padding:20px;text-align:center;color:var(--ink2);font-size:0.85rem;}
+
+  /* FAB */
+  .fab-wrap{position:fixed;bottom:24px;right:20px;display:flex;flex-direction:column;align-items:flex-end;gap:10px;z-index:50;}
+  .add-fab{width:56px;height:56px;background:var(--accent);border:none;border-radius:50%;color:white;font-size:1.8rem;cursor:pointer;box-shadow:0 4px 16px rgba(45,80,22,0.4);display:flex;align-items:center;justify-content:center;transition:transform 0.2s,box-shadow 0.2s;}
+  .add-fab:hover{transform:scale(1.08);box-shadow:0 6px 20px rgba(45,80,22,0.5);}
+  .export-fab{padding:10px 16px;background:var(--surface);border:1.5px solid var(--accent);border-radius:24px;color:var(--accent);font-size:0.82rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.12);white-space:nowrap;}
+  .export-fab:hover{background:var(--green-light);}
+
+  /* MODAL */
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;align-items:flex-end;justify-content:center;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:var(--surface);width:100%;max-width:480px;border-radius:20px 20px 0 0;padding:24px 20px 36px;max-height:92vh;overflow-y:auto;}
+  .modal-title{font-family:'DM Serif Display',serif;font-size:1.35rem;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;}
+  .close-btn{background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--ink2);}
+  .form-group{margin-bottom:13px;}
+  .form-label{font-size:0.78rem;font-weight:600;color:var(--ink2);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:0.04em;}
+  .form-control{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.95rem;color:var(--ink);background:var(--bg);outline:none;transition:border-color 0.2s;}
+  .form-control:focus{border-color:var(--accent);}
+  select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B6560' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center;padding-right:34px;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .form-btn{width:100%;padding:14px;background:var(--accent);color:white;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;margin-top:6px;transition:background 0.2s;}
+  .form-btn:hover{background:var(--accent2);}
+  .type-btns{display:flex;gap:8px;}
+  .type-btn{flex:1;padding:10px;border:2px solid var(--border);border-radius:10px;background:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:600;transition:all 0.2s;color:var(--ink2);}
+  .type-btn.active-income{border-color:var(--green);background:var(--green-light);color:var(--green);}
+  .type-btn.active-expense{border-color:var(--red);background:var(--red-light);color:var(--red);}
+  .detail-note{font-size:0.78rem;color:var(--ink2);margin-top:4px;}
+
+  /* CONFIG */
+  #config-screen{display:none;position:fixed;inset:0;background:var(--bg);z-index:300;overflow-y:auto;max-width:480px;margin:0 auto;padding-bottom:40px;}
+  .config-header{background:var(--accent);color:white;padding:16px 20px;display:flex;align-items:center;gap:14px;margin-bottom:24px;}
+  .config-title{font-family:'DM Serif Display',serif;font-size:1.35rem;color:white;flex:1;}
+  .config-body{padding:0 20px;}
+  .config-section-title{font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:14px;color:var(--ink);}
+  .bank-list{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
+  .bank-item{display:flex;gap:8px;align-items:center;}
+  .bank-item input{flex:1;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.9rem;background:var(--surface);outline:none;color:var(--ink);}
+  .bank-item input:focus{border-color:var(--accent);}
+  .bank-del{background:none;border:none;cursor:pointer;color:var(--border);font-size:1.1rem;padding:4px 6px;transition:color 0.15s;}
+  .bank-del:hover{color:var(--red);}
+  .add-bank-btn{background:none;border:1.5px dashed var(--border);border-radius:10px;padding:10px;width:100%;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.88rem;color:var(--ink2);transition:all 0.2s;margin-bottom:20px;}
+  .add-bank-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .divider{height:1px;background:var(--border);margin:20px 0;}
+
+  /* EXPORT */
+  .export-box{background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:14px;font-family:monospace;font-size:0.75rem;line-height:1.7;white-space:pre;overflow-x:auto;max-height:300px;overflow-y:auto;color:var(--ink);margin-bottom:12px;}
+  .copy-btn{width:100%;padding:13px;background:var(--accent);color:white;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:0.95rem;font-weight:600;cursor:pointer;transition:background 0.2s;}
+  .copy-btn:hover{background:var(--accent2);}
+  .copy-success{text-align:center;color:var(--green);font-size:0.85rem;margin-top:8px;min-height:20px;font-weight:600;}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN SCREEN ══ -->
+<div id="login-screen">
+  <div>
+    <div class="login-title">Cuenta<br><em>Personal</em></div>
+  </div>
+  <div class="login-card">
+    <div class="form-group">
+      <label class="form-label" id="lbl-login-initials">Iniciales</label>
+      <input type="text" class="form-control" id="login-initials" placeholder="MVM" maxlength="6"
+        style="text-transform:uppercase;font-size:1.1rem;text-align:center;letter-spacing:0.1em"
+        oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')document.getElementById('login-pin').focus()">
+    </div>
+    <div class="form-group">
+      <label class="form-label" id="lbl-login-pin">PIN</label>
+      <input type="password" inputmode="numeric" class="form-control" id="login-pin" placeholder="••••" maxlength="8"
+        style="font-size:1.1rem;text-align:center;letter-spacing:0.15em"
+        onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <p class="login-err" id="login-err"></p>
+    <button class="form-btn" onclick="doLogin()" id="login-btn">Entrar / Wejdź</button>
+    <div class="spinner" id="login-spinner">⏳ Cargando...</div>
+    <p class="login-hint" id="login-hint">Primera vez: elige tus iniciales y un PIN — se creará tu cuenta automáticamente.</p>
+  </div>
+</div>
+
+<!-- ══ LANGUAGE SCREEN ══ -->
+<div id="lang-screen">
+  <div>
+    <div class="lang-title">Cuenta<br><em>Personal</em></div>
+    <p style="color:var(--ink2);font-size:0.95rem;text-align:center;margin-top:8px">Selecciona tu idioma / Wybierz język</p>
+  </div>
+  <div class="lang-btns">
+    <button class="lang-btn" onclick="setLang('es')"><span class="flag">🇪🇸</span>Español</button>
+    <button class="lang-btn" onclick="setLang('pl')"><span class="flag">🇵🇱</span>Polski</button>
+  </div>
+</div>
+
+<!-- ══ CONFIG SCREEN ══ -->
+<div id="config-screen">
+  <div class="config-header">
+    <button class="hdr-btn" onclick="closeConfig()" style="font-size:1.1rem">←</button>
+    <span class="config-title" id="cfg-title">Configuración</span>
+  </div>
+  <div class="config-body">
+    <div class="config-section-title" id="cfg-banks-title">Bancos / Cuentas</div>
+    <p class="detail-note" id="cfg-banks-note" style="margin-bottom:14px"></p>
+    <div class="bank-list" id="bank-list"></div>
+    <button class="add-bank-btn" onclick="addBankRow()" id="cfg-add-bank">+ Añadir</button>
+    <div class="divider"></div>
+    <div class="config-section-title" id="cfg-account-title">Cuenta</div>
+    <p class="detail-note" style="margin-bottom:14px">
+      <span id="cfg-logged-as">Conectado como: </span><strong id="cfg-user-id"></strong>
+    </p>
+    <button class="form-btn" style="background:var(--surface2);color:var(--ink);border:1.5px solid var(--border);margin-bottom:10px" onclick="doLogout()" id="cfg-logout-btn">Cerrar sesión</button>
+    <div class="divider"></div>
+    <button class="form-btn" onclick="saveConfig()" id="cfg-save-btn">Guardar</button>
+  </div>
+</div>
+
+<!-- ══ MAIN APP ══ -->
+<div id="app">
+  <div class="app-header">
+    <div class="header-top">
+      <span class="app-title" id="app-title">Cuenta Personal</span>
+      <button class="hdr-btn" onclick="openConfig()">⚙ <span id="cfg-btn-label">Config</span></button>
+      <button class="hdr-btn" onclick="showLangScreen()">🌐 <span id="lang-name">ES</span></button>
+    </div>
+    <div class="month-nav">
+      <button class="month-btn" onclick="prevMonth()">‹</button>
+      <span class="month-label" id="month-label"></span>
+      <button class="month-btn" onclick="nextMonth()">›</button>
+    </div>
+    <div class="sync-indicator" id="sync-indicator"></div>
+  </div>
+
+  <div class="balance-card">
+    <div class="balance-row">
+      <span class="balance-label" id="lbl-initial">Saldo inicial</span>
+      <div class="balance-input-wrap">
+        <input type="text" inputmode="decimal" class="balance-inline-input" id="initial-balance" placeholder="0,00"
+          onblur="saveInitialBalance()" onkeydown="if(event.key==='Enter')this.blur()">
+      </div>
+    </div>
+    <div class="balance-row">
+      <span class="balance-label" id="lbl-income">Total ingresos</span>
+      <span class="balance-amount amount-pos" id="total-income">+0,00</span>
+    </div>
+    <div class="balance-row">
+      <span class="balance-label" id="lbl-expenses">Total gastos</span>
+      <span class="balance-amount amount-neg" id="total-expenses">-0,00</span>
+    </div>
+    <div class="balance-row" style="background:var(--surface2)">
+      <span class="balance-label" id="lbl-final"><strong>Saldo final</strong></span>
+      <span class="balance-amount amount-neutral" id="final-balance" style="font-size:1.45rem">0,00</span>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" id="tab-all"      onclick="switchTab('all')">Todo</button>
+    <button class="tab"        id="tab-income"   onclick="switchTab('income')">Ingresos</button>
+    <button class="tab"        id="tab-expenses" onclick="switchTab('expenses')">Gastos</button>
+  </div>
+
+  <div id="entries-container"></div>
+
+  <div class="fab-wrap">
+    <button class="export-fab" onclick="openOrdExport()" id="ord-fab-btn" style="display:none">📋 Desglose ordinarios</button>
+    <button class="export-fab" onclick="openExport()" id="export-fab-btn">📤 Exportar mes</button>
+    <button class="add-fab" onclick="openModal()">+</button>
+  </div>
+</div>
+
+<!-- ══ ENTRY MODAL ══ -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="modal-title-text">Añadir</span>
+      <button class="close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label" id="lbl-type">Tipo</label>
+      <div class="type-btns">
+        <button class="type-btn" id="btn-income"  onclick="setType('income')">+ <span id="lbl-btn-income">Ingreso</span></button>
+        <button class="type-btn" id="btn-expense" onclick="setType('expense')">− <span id="lbl-btn-expense">Gasto</span></button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" id="lbl-category">Categoría</label>
+      <select class="form-control" id="entry-category" onchange="onCategoryChange()"></select>
+    </div>
+    <div class="form-group" id="subcategory-group" style="display:none">
+      <label class="form-label" id="lbl-subcategory">Desglose</label>
+      <select class="form-control" id="entry-subcategory"></select>
+      <p class="detail-note" id="subcategory-note"></p>
+    </div>
+    <div class="row2">
+      <div class="form-group">
+        <label class="form-label" id="lbl-amount">Importe</label>
+        <input type="text" inputmode="decimal" class="form-control" id="entry-amount" placeholder="0,00">
+      </div>
+      <div class="form-group">
+        <label class="form-label" id="lbl-date">Fecha</label>
+        <input type="date" class="form-control" id="entry-date">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" id="lbl-payment">Banco / Pago</label>
+      <select class="form-control" id="entry-payment"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label" id="lbl-note">Nota (opcional)</label>
+      <input type="text" class="form-control" id="entry-note" placeholder="Descripción...">
+    </div>
+    <button class="form-btn" id="save-btn" onclick="saveEntry()">Guardar</button>
+  </div>
+</div>
+
+<!-- ══ EXPORT MODAL ══ -->
+<div class="modal-overlay" id="export-overlay" onclick="closeExportOutside(event)">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="export-title-text">Exportar mes</span>
+      <button class="close-btn" onclick="closeExport()">✕</button>
+    </div>
+    <div class="tabs" style="margin:0 0 14px">
+      <button class="tab active" id="export-tab-share" onclick="switchExportTab('share')">📲 <span id="lbl-etab-share">Enviar</span></button>
+      <button class="tab"        id="export-tab-excel" onclick="switchExportTab('excel')">📊 <span id="lbl-etab-excel">Excel</span></button>
+    </div>
+    <div id="export-view-share">
+      <p class="detail-note" id="export-share-note" style="margin-bottom:10px"></p>
+      <div class="export-box" id="export-box-share" style="font-size:0.8rem;line-height:1.8"></div>
+      <button class="copy-btn" onclick="shareExport()" id="share-btn" style="margin-top:12px"></button>
+      <p class="copy-success" id="share-success"></p>
+    </div>
+    <div id="export-view-excel" style="display:none">
+      <p class="detail-note" id="export-excel-note" style="margin-bottom:10px"></p>
+      <div class="export-box" id="export-box-excel"></div>
+      <button class="copy-btn" onclick="copyExport()" id="copy-btn" style="margin-top:12px"></button>
+      <p class="copy-success" id="copy-success"></p>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ORDINARY BREAKDOWN MODAL ══ -->
+<div class="modal-overlay" id="ord-overlay" onclick="if(event.target===this)closeOrdExport()">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="ord-title-text">Desglose ordinarios</span>
+      <button class="close-btn" onclick="closeOrdExport()">✕</button>
+    </div>
+    <p class="detail-note" id="ord-note" style="margin-bottom:10px"></p>
+    <div class="export-box" id="ord-box" style="font-size:0.8rem;line-height:1.8"></div>
+    <button class="copy-btn" onclick="shareOrdExport()" id="ord-share-btn" style="margin-top:12px"></button>
+    <p class="copy-success" id="ord-success"></p>
+  </div>
+</div>
+
+<!-- ══ YEAR-END DIALOG ══ -->
+<div class="modal-overlay" id="yearend-overlay">
+  <div class="modal" style="text-align:center">
+    <div style="font-size:2.5rem;margin-bottom:12px">🎉</div>
+    <div style="font-family:'DM Serif Display',serif;font-size:1.35rem;margin-bottom:16px" id="yearend-title">Nuevo año</div>
+    <p id="yearend-msg" style="color:var(--ink2);font-size:0.92rem;margin-bottom:8px;line-height:1.5"></p>
+    <p id="yearend-balance" style="font-family:'DM Serif Display',serif;font-size:1.8rem;color:var(--accent);margin:12px 0 8px"></p>
+    <p id="yearend-explain" style="color:var(--ink2);font-size:0.82rem;margin-bottom:24px;line-height:1.5"></p>
+    <button class="form-btn" id="yearend-archive-btn" onclick="doArchive()" style="margin-bottom:10px"></button>
+    <button class="form-btn" id="yearend-keep-btn" onclick="doKeep()" style="background:var(--surface2);color:var(--ink);border:1.5px solid var(--border);margin-top:0"></button>
+  </div>
+</div>
+
+<!-- ══ FIREBASE + APP SCRIPT ══ -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyC1HkQ4Vq32R0lR3JYgVsdlLks-udrgoTo",
+  authDomain: "cuenta-de-gastos-f7e43.firebaseapp.com",
+  projectId: "cuenta-de-gastos-f7e43",
+  storageBucket: "cuenta-de-gastos-f7e43.firebasestorage.app",
+  messagingSenderId: "118753638719",
+  appId: "1:118753638719:web:ec932fd3e51429705efb8a"
+};
+const fbApp = initializeApp(firebaseConfig);
+const db    = getFirestore(fbApp);
+
+// ══ CATEGORIES ══
+const CATEGORIES = {
+  income:{id:'income',items:[
+    {id:'sueldo',        i18n:{es:'Sueldo',                   pl:'Wynagrodzenie'}},
+    {id:'otros_ingresos',i18n:{es:'Otros ingresos personales', pl:'Inne dochody osobiste'}}
+  ]},
+  ordinarios:{id:'ordinarios',i18n:{es:'Gastos ordinarios',pl:'Wydatki zwykłe'},isOrdinary:true,subcats:[
+    {id:'ord_ordinarios',i18n:{es:'Ordinarios',                       pl:'Zwykłe'}},
+    {id:'ord_estudios',  i18n:{es:'Estudio / Capacitación profesional',pl:'Studia / Szkolenie zawodowe'}}
+  ]},
+  formacion:{id:'formacion',i18n:{es:'Medios de formación',pl:'Środki formacji'},subcats:[
+    {id:'form_crt',  i18n:{es:'CRT + viajes',            pl:'CRT + podróże'}},
+    {id:'form_ca',   i18n:{es:'CA + viajes + excursiones',pl:'CA + podróże + wycieczki'}},
+    {id:'form_otros',i18n:{es:'Otros + viajes',           pl:'Inne + podróże'}}
+  ]},
+  otros_personales:{id:'otros_personales',i18n:{es:'Otros gastos personales',pl:'Inne wydatki osobiste'},subcats:[
+    {id:'op_medicos',i18n:{es:'Médicos',pl:'Medyczne'}},
+    {id:'op_viajes', i18n:{es:'Viajes', pl:'Podróże'}},
+    {id:'op_ropa',   i18n:{es:'Ropa',   pl:'Odzież'}}
+  ]},
+  obligaciones:{id:'obligaciones',i18n:{es:'Obligaciones',pl:'Zobowiązania'},subcats:[
+    {id:'ob_camara',    i18n:{es:'Cámara profesional / Afiliaciones',         pl:'Izba zawodowa / Afiliacje'}},
+    {id:'ob_residencia',i18n:{es:'Carta de residencia, Seguridad Social, etc.',pl:'Karta pobytu, ZUS, itp.'}},
+    {id:'ob_creditos',  i18n:{es:'Créditos personales, otras obligaciones',   pl:'Kredyty osobiste, inne zobowiązania'}},
+    {id:'ob_vivienda',  i18n:{es:'Vivienda (costes no del centro)',            pl:'Mieszkanie (koszty spoza centrum)'}},
+    {id:'ob_familiar',  i18n:{es:'Ayuda familiar',                             pl:'Pomoc rodzinie'}},
+    {id:'ob_coche',     i18n:{es:'Coche (uso personal)',                       pl:'Samochód (użytek osobisty)'}},
+    {id:'ob_jubilacion',i18n:{es:'Fondo de jubilación',                        pl:'Fundusz emerytalny'}}
+  ]},
+  administracion:{id:'administracion',i18n:{es:'Administración',pl:'Administracja'}},
+  otros_no_incluidos:{id:'otros_no_incluidos',i18n:{es:'Otros (no incluidos en apartados anteriores)',pl:'Inne (nieuwzględnione wcześniej)'}}
+};
+
+const EXPORT_LABEL={
+  sueldo:'Sueldos',otros_ingresos:'Otros ingresos',
+  ordinarios:'Ordinarios',ord_ordinarios:'Ordinarios',ord_estudios:'Estudio/Capacitación',
+  formacion:'Medios de formación',form_crt:'CRT + viajes',form_ca:'CA + viajes + excursiones',form_otros:'Otros + viajes',
+  otros_personales:'Otros gastos personales',op_medicos:'Médicos',op_viajes:'Viajes',op_ropa:'Ropa',
+  obligaciones:'Obligaciones',ob_camara:'Cámara profesional',ob_residencia:'Residencia/SS',
+  ob_creditos:'Créditos',ob_vivienda:'Vivienda',ob_familiar:'Ayuda familiar',
+  ob_coche:'Coche',ob_jubilacion:'Fondo de jubilación',
+  administracion:'Administración',otros_no_incluidos:'Otros'
+};
+
+const MONTHS_ES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const MONTHS_PL=['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];
+
+const I18N={
+  es:{appTitle:'Cuenta Personal',langName:'ES',months:MONTHS_ES,
+    tabAll:'Todo',tabIncome:'Ingresos',tabExpenses:'Gastos',
+    lblInitial:'Saldo inicial',lblIncome:'Total ingresos',lblExpenses:'Total gastos',lblFinal:'Saldo final',
+    lblType:'Tipo',lblCategory:'Categoría',lblSubcategory:'Desglose',
+    lblAmount:'Importe',lblDate:'Fecha',lblPayment:'Banco / Pago',lblNote:'Nota (opcional)',
+    lblBtnIncome:'Ingreso',lblBtnExpense:'Gasto',
+    modalTitle:'Añadir',modalTitleEdit:'Editar',saveBtn:'Guardar',
+    groupIncome:'Ingresos',emptyMsg:'Sin movimientos este mes',
+    subNote_ordinarios:'Se registran con detalle en el desglose',
+    cfgTitle:'Configuración',cfgBanks:'Bancos / Cuentas',
+    cfgBanksNote:'Añade tus bancos. El primero será el predeterminado.',
+    cfgAddBank:'+ Añadir banco / efectivo',cfgSave:'Guardar',cfgBtn:'Config',
+    cfgAccount:'Cuenta',cfgLoggedAs:'Conectado como:',cfgLogout:'Cerrar sesión',
+    exportBtn:'Exportar mes',exportTitle:'Exportar mes',
+    etabShare:'Enviar',etabExcel:'Excel (pegar)',
+    exportShareNote:'Vista legible para enviar por WhatsApp u otro.',
+    exportExcelNote:'Formato TSV para pegar en el Excel del centro.',
+    shareBtn:'📲 Enviar / Compartir',copyBtn:'Copiar al portapapeles',copiedMsg:'✓ ¡Copiado!',cash:'Efectivo',
+    shareIniLabel:'Saldo inicial',shareFinLabel:'Saldo final',
+    ordExportTitle:'Desglose gastos ordinarios',ordExportNote:'Detalle de gastos ordinarios del mes.',
+    syncSaving:'Guardando...', syncOk:'✓ Guardado', syncErr:'⚠ Error al guardar',
+    yearEndTitle:'¡Bienvenida a {y}!',yearEndMsg:'Has cerrado el año {y}. Tu saldo final de diciembre fue:',
+    yearEndExplain:'¿Quieres borrar los datos de {y} y empezar enero limpio con ese saldo?',
+    yearEndArchive:'Archivar año anterior y empezar limpio',yearEndKeep:'Mantener todos los datos'
+  },
+  pl:{appTitle:'Konto Osobiste',langName:'PL',months:MONTHS_PL,
+    tabAll:'Wszystko',tabIncome:'Dochody',tabExpenses:'Wydatki',
+    lblInitial:'Saldo początkowe',lblIncome:'Łączne dochody',lblExpenses:'Łączne wydatki',lblFinal:'Saldo końcowe',
+    lblType:'Typ',lblCategory:'Kategoria',lblSubcategory:'Szczegół',
+    lblAmount:'Kwota',lblDate:'Data',lblPayment:'Bank / Płatność',lblNote:'Notatka (opcjonalna)',
+    lblBtnIncome:'Dochód',lblBtnExpense:'Wydatek',
+    modalTitle:'Dodaj',modalTitleEdit:'Edytuj',saveBtn:'Zapisz',
+    groupIncome:'Dochody',emptyMsg:'Brak wpisów w tym miesiącu',
+    subNote_ordinarios:'Zapisywane szczegółowo w zestawieniu',
+    cfgTitle:'Ustawienia',cfgBanks:'Banki / Konta',
+    cfgBanksNote:'Dodaj swoje banki. Pierwszy będzie domyślny.',
+    cfgAddBank:'+ Dodaj bank / gotówkę',cfgSave:'Zapisz',cfgBtn:'Ustaw.',
+    cfgAccount:'Konto',cfgLoggedAs:'Zalogowano jako:',cfgLogout:'Wyloguj',
+    exportBtn:'Eksportuj miesiąc',exportTitle:'Eksportuj miesiąc',
+    etabShare:'Wyślij',etabExcel:'Excel (wklej)',
+    exportShareNote:'Czytelny widok do wysłania przez WhatsApp lub inny komunikator.',
+    exportExcelNote:'Format TSV do wklejenia do arkusza centrum.',
+    shareBtn:'📲 Wyślij / Udostępnij',copyBtn:'Skopiuj do schowka',copiedMsg:'✓ Skopiowano!',cash:'Gotówka',
+    shareIniLabel:'Saldo początkowe',shareFinLabel:'Saldo końcowe',
+    ordExportTitle:'Zestawienie wydatków zwykłych',ordExportNote:'Szczegóły zwykłych wydatków miesiąca.',
+    syncSaving:'Zapisywanie...', syncOk:'✓ Zapisano', syncErr:'⚠ Błąd zapisu',
+    yearEndTitle:'Witaj w {y}!',yearEndMsg:'Rok {y} został zamknięty. Saldo końcowe grudnia:',
+    yearEndExplain:'Czy chcesz usunąć dane z {y} i zacząć styczeń od nowa z tym saldem?',
+    yearEndArchive:'Zarchiwizuj i zacznij od nowa',yearEndKeep:'Zachowaj wszystkie dane'
+  }
+};
+
+// ══ STATE ══
+let lang='es', currentYear=new Date().getFullYear(), currentMonth=new Date().getMonth();
+let currentTab='all', entryType='expense', editingId=null;
+let data={}, config={banks:[]};
+let userId='';  // "INITIALS_PIN" as Firestore doc ID
+let syncTimer=null;
+
+// ══ FIREBASE ══
+function userDocRef(){ return doc(db,'users', userId); }
+
+async function loadFromFirebase(){
+  try{
+    const snap = await getDoc(userDocRef());
+    if(snap.exists()){
+      const d = snap.data();
+      data   = d.data   || {};
+      config = d.config || {banks:[]};
+      lang   = d.lang   || lang;
+    }
+    // else: new user, empty state
+  } catch(e){ console.error('Firebase load error',e); }
+}
+
+function scheduleSave(){
+  clearTimeout(syncTimer);
+  showSync('saving');
+  syncTimer=setTimeout(()=>pushToFirebase(), 1200);
+}
+
+async function pushToFirebase(){
+  try{
+    await setDoc(userDocRef(), { data, config, lang }, { merge:true });
+    showSync('ok');
+  } catch(e){
+    console.error('Firebase save error',e);
+    showSync('err');
+  }
+}
+
+function showSync(state){
+  const el=document.getElementById('sync-indicator');
+  if(!el) return;
+  const t=I18N[lang];
+  if(state==='saving') el.textContent=t.syncSaving;
+  else if(state==='ok'){ el.textContent=t.syncOk; setTimeout(()=>el.textContent='',2000); }
+  else el.textContent=t.syncErr;
+}
+
+function saveData(){ scheduleSave(); }
+function saveLang(l){ lang=l; scheduleSave(); }
+function loadLang(){ return null; } // lang comes from Firebase now
+
+// ══ LOGIN ══
+async function doLogin(){
+  const initials = document.getElementById('login-initials').value.trim().toUpperCase();
+  const pin      = document.getElementById('login-pin').value.trim();
+  const errEl    = document.getElementById('login-err');
+  const spinner  = document.getElementById('login-spinner');
+  errEl.textContent='';
+  if(!initials || initials.length<1){ errEl.textContent='Introduce tus iniciales / Wpisz inicjały'; return; }
+  if(!pin || pin.length<4){ errEl.textContent='El PIN debe tener mínimo 4 caracteres / PIN min. 4 znaki'; return; }
+  userId = initials+'_'+pin;
+  document.getElementById('login-btn').disabled=true;
+  spinner.style.display='block';
+  try{
+    await loadFromFirebase();
+    // Store session locally so user stays logged in
+    localStorage.setItem('cuentaSession_v1', userId);
+    spinner.style.display='none';
+    document.getElementById('login-btn').disabled=false;
+    document.getElementById('login-screen').style.display='none';
+    // If no lang set yet, show lang screen; else go to app
+    if(!lang || !data || Object.keys(data).length===0 && !config.banks.length){
+      // First time — show language screen
+      document.getElementById('lang-screen').style.display='flex';
+    } else {
+      launchApp();
+    }
+  } catch(e){
+    spinner.style.display='none';
+    document.getElementById('login-btn').disabled=false;
+    errEl.textContent='Error de conexión. Comprueba internet.';
+  }
+}
+window.doLogin = doLogin;
+
+function doLogout(){
+  localStorage.removeItem('cuentaSession_v1');
+  userId=''; data={}; config={banks:[]};
+  document.getElementById('config-screen').style.display='none';
+  document.getElementById('app').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('login-initials').value='';
+  document.getElementById('login-pin').value='';
+}
+window.doLogout = doLogout;
+
+function launchApp(){
+  document.getElementById('lang-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('cfg-user-id').textContent=userId.split('_')[0];
+  applyI18n(); renderAll(); checkYearEnd();
+}
+
+// ══ LANG ══
+function setLang(l){
+  lang=l; saveLang(l);
+  launchApp();
+}
+window.setLang = setLang;
+
+function showLangScreen(){
+  document.getElementById('app').style.display='none';
+  document.getElementById('lang-screen').style.display='flex';
+}
+window.showLangScreen = showLangScreen;
+
+function applyI18n(){
+  const t=I18N[lang];
+  const ids={
+    'app-title':t.appTitle,'lang-name':t.langName,'cfg-btn-label':t.cfgBtn,
+    'lbl-initial':t.lblInitial,'lbl-income':t.lblIncome,'lbl-expenses':t.lblExpenses,
+    'tab-all':t.tabAll,'tab-income':t.tabIncome,'tab-expenses':t.tabExpenses,
+    'lbl-type':t.lblType,'lbl-category':t.lblCategory,'lbl-subcategory':t.lblSubcategory,
+    'lbl-amount':t.lblAmount,'lbl-date':t.lblDate,'lbl-payment':t.lblPayment,'lbl-note':t.lblNote,
+    'lbl-btn-income':t.lblBtnIncome,'lbl-btn-expense':t.lblBtnExpense,
+    'modal-title-text':t.modalTitle,'save-btn':t.saveBtn,
+    'export-fab-btn':'📤 '+t.exportBtn,'export-title-text':t.exportTitle,
+    'lbl-etab-share':t.etabShare,'lbl-etab-excel':t.etabExcel,
+    'export-share-note':t.exportShareNote,'export-excel-note':t.exportExcelNote,
+    'share-btn':t.shareBtn,'copy-btn':t.copyBtn,
+    'ord-fab-btn':'📋 '+t.ordExportTitle,'ord-title-text':t.ordExportTitle,
+    'ord-note':t.ordExportNote,'ord-share-btn':t.shareBtn,
+    'cfg-title':t.cfgTitle,'cfg-banks-title':t.cfgBanks,'cfg-banks-note':t.cfgBanksNote,
+    'cfg-add-bank':t.cfgAddBank,'cfg-save-btn':t.cfgSave,
+    'cfg-account-title':t.cfgAccount,'cfg-logged-as':t.cfgLoggedAs+' ','cfg-logout-btn':t.cfgLogout
+  };
+  Object.entries(ids).forEach(([id,val])=>{ const el=document.getElementById(id); if(el) el.textContent=val; });
+  document.getElementById('lbl-final').innerHTML=`<strong>${t.lblFinal}</strong>`;
+}
+
+// ══ CONFIG ══
+function openConfig(){
+  document.getElementById('cfg-user-id').textContent=userId.split('_')[0];
+  renderBankList();
+  document.getElementById('config-screen').style.display='block';
+}
+window.openConfig = openConfig;
+
+function closeConfig(){ document.getElementById('config-screen').style.display='none'; }
+window.closeConfig = closeConfig;
+
+function saveConfig(){
+  config.banks=[];
+  document.querySelectorAll('.bank-name-input').forEach(inp=>{ const v=inp.value.trim(); if(v) config.banks.push({name:v}); });
+  closeConfig(); saveData(); renderAll();
+}
+window.saveConfig = saveConfig;
+
+function renderBankList(){
+  const list=document.getElementById('bank-list'); list.innerHTML='';
+  (config.banks||[]).forEach((b,i)=>{
+    const row=document.createElement('div'); row.className='bank-item';
+    row.innerHTML=`<input class="bank-name-input" type="text" value="${b.name||''}" placeholder="Ej: SEB IG">
+      <button class="bank-del" onclick="removeBankRow(${i})">✕</button>`;
+    list.appendChild(row);
+  });
+}
+function addBankRow(){
+  config.banks=[]; document.querySelectorAll('.bank-name-input').forEach(inp=>config.banks.push({name:inp.value.trim()}));
+  config.banks.push({name:''}); renderBankList();
+}
+window.addBankRow = addBankRow;
+function removeBankRow(i){
+  config.banks=[]; document.querySelectorAll('.bank-name-input').forEach(inp=>config.banks.push({name:inp.value.trim()}));
+  config.banks.splice(i,1); renderBankList();
+}
+window.removeBankRow = removeBankRow;
+
+function getPaymentOptions(){
+  const t=I18N[lang];
+  const opts=(config.banks||[]).filter(b=>b.name).map(b=>b.name);
+  if(opts.length===0) opts.push(t.cash);
+  return opts;
+}
+function populatePaymentSelect(selected){
+  const sel=document.getElementById('entry-payment'); sel.innerHTML='';
+  getPaymentOptions().forEach(name=>{
+    const o=document.createElement('option'); o.value=name; o.textContent=name;
+    if(selected&&name===selected) o.selected=true;
+    sel.appendChild(o);
+  });
+}
+
+// ══ NAVIGATION ══
+function prevMonth(){ if(currentMonth===0){currentMonth=11;currentYear--;}else currentMonth--; renderAll(); }
+function nextMonth(){ if(currentMonth===11){currentMonth=0;currentYear++;}else currentMonth++; renderAll(); }
+window.prevMonth=prevMonth; window.nextMonth=nextMonth;
+function switchTab(t){
+  currentTab=t;
+  ['all','income','expenses'].forEach(id=>document.getElementById('tab-'+id).classList.toggle('active',id===t));
+  renderEntries();
+}
+window.switchTab=switchTab;
+
+// ══ NUMBER FORMAT ══
+function parseAmt(str){
+  if(str===null||str===undefined||str==='') return NaN;
+  let s=String(str).trim();
+  if(s.match(/,\d{1,2}$/)) s=s.replace(/\./g,'').replace(',','.');
+  else s=s.replace(/,/g,'');
+  return parseFloat(s);
+}
+function fmt(num){
+  if(isNaN(num)) return '0,00';
+  return num.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function fmtDateExport(iso){
+  if(!iso) return '';
+  const [y,m,d]=iso.split('-');
+  return `${d}.${m}.${y}`;
+}
+
+// ══ DATA HELPERS ══
+function getMonthKey(y,m){ return `${y}-${String(m+1).padStart(2,'0')}`; }
+function getMonthData(y,m){ const k=getMonthKey(y,m); if(!data[k]) data[k]={initialBalance:null,entries:[]}; return data[k]; }
+
+// ══ BALANCE ══
+function getPrevMonthFinal(){
+  let py=currentYear,pm=currentMonth-1; if(pm<0){pm=11;py--;}
+  const pd=getMonthData(py,pm);
+  if(pd.initialBalance===null&&pd.entries.length===0) return null;
+  return calcFinal(py,pm);
+}
+function calcFinal(y,m){
+  const d=getMonthData(y,m); const ini=parseAmt(d.initialBalance)||0;
+  let inc=0,exp=0;
+  d.entries.forEach(e=>{ if(e.type==='income') inc+=parseAmt(e.amount)||0; else exp+=parseAmt(e.amount)||0; });
+  return ini+inc-exp;
+}
+function renderBalance(){
+  const md=getMonthData(currentYear,currentMonth);
+  const prevFinal=getPrevMonthFinal();
+  const inp=document.getElementById('initial-balance');
+  if(prevFinal!==null&&md.initialBalance===null){ inp.value=fmt(prevFinal); inp.style.color='var(--ink2)'; }
+  else{ const s=parseAmt(md.initialBalance); inp.value=md.initialBalance!==null?fmt(isNaN(s)?0:s):''; inp.style.color='var(--ink)'; }
+  const iniVal=parseAmt(inp.value)||0;
+  let inc=0,exp=0;
+  (md.entries||[]).forEach(e=>{ if(e.type==='income') inc+=parseAmt(e.amount)||0; else exp+=parseAmt(e.amount)||0; });
+  const final=iniVal+inc-exp;
+  document.getElementById('total-income').textContent=`+${fmt(inc)}`;
+  document.getElementById('total-expenses').textContent=`-${fmt(exp)}`;
+  const fEl=document.getElementById('final-balance');
+  fEl.textContent=fmt(final);
+  fEl.className='balance-amount '+(final>0?'amount-pos':final<0?'amount-neg':'amount-neutral');
+  fEl.style.fontSize='1.45rem';
+}
+function saveInitialBalance(){
+  const val=document.getElementById('initial-balance').value;
+  const parsed=parseAmt(val);
+  getMonthData(currentYear,currentMonth).initialBalance=!isNaN(parsed)?parsed:null;
+  saveData(); renderBalance();
+}
+window.saveInitialBalance=saveInitialBalance;
+
+// ══ ENTRIES ══
+function catDisplayName(catId,subcatId){
+  if(catId==='sueldo') return CATEGORIES.income.items[0].i18n[lang];
+  if(catId==='otros_ingresos') return CATEGORIES.income.items[1].i18n[lang];
+  for(const gid of ['ordinarios','formacion','otros_personales','obligaciones','administracion','otros_no_incluidos']){
+    const g=CATEGORIES[gid];
+    if(g.id===catId){
+      if(subcatId&&g.subcats){ const sub=g.subcats.find(s=>s.id===subcatId); if(sub) return `${g.i18n[lang]} · ${sub.i18n[lang]}`; }
+      return g.i18n[lang];
+    }
+  }
+  return catId;
+}
+function renderEntries(){
+  const md=getMonthData(currentYear,currentMonth);
+  const container=document.getElementById('entries-container');
+  const entries=(md.entries||[]).filter(e=>{
+    if(currentTab==='income') return e.type==='income';
+    if(currentTab==='expenses') return e.type==='expense';
+    return true;
+  });
+  if(entries.length===0){ container.innerHTML=`<div class="section"><div class="entries-card"><div class="empty-state">${I18N[lang].emptyMsg}</div></div></div>`; return; }
+  const groups={};
+  entries.forEach(e=>{ const gk=e.type==='income'?'income':(e.category||'otros_no_incluidos'); if(!groups[gk])groups[gk]=[]; groups[gk].push(e); });
+  const groupOrder=['income','ordinarios','formacion','otros_personales','obligaciones','administracion','otros_no_incluidos'];
+  let html=''; const t=I18N[lang];
+  groupOrder.forEach(gk=>{
+    if(!groups[gk]) return;
+    let gTotal=0;
+    groups[gk].forEach(e=>{ if(e.type==='income') gTotal+=parseAmt(e.amount)||0; else gTotal-=parseAmt(e.amount)||0; });
+    const gLabel=gk==='income'?t.groupIncome:(CATEGORIES[gk]?CATEGORIES[gk].i18n[lang]:gk);
+    const totalClass=gTotal>0?'total-pos':gTotal<0?'total-neg':'total-zero';
+    html+=`<div class="section"><div class="section-header">${gLabel}<span class="section-total ${totalClass}">${(gTotal>=0?'+':'-')}${fmt(Math.abs(gTotal))}</span></div><div class="entries-card">`;
+    const g=CATEGORIES[gk];
+    if(g&&g.subcats&&g.subcats.length>0&&groups[gk].some(e=>e.subcategory)){
+      const sg={};
+      groups[gk].forEach(e=>{ const sk=e.subcategory||g.subcats[0].id; if(!sg[sk])sg[sk]=[]; sg[sk].push(e); });
+      g.subcats.forEach(sub=>{ if(!sg[sub.id])return; html+=`<div class="subcat-label">${sub.i18n[lang]}</div>`; sg[sub.id].sort((a,b)=>a.date>b.date?-1:1).forEach(e=>{ html+=entryRowHtml(e); }); });
+    } else { groups[gk].sort((a,b)=>a.date>b.date?-1:1).forEach(e=>{ html+=entryRowHtml(e); }); }
+    html+=`</div></div>`;
+  });
+  container.innerHTML=html;
+}
+function entryRowHtml(e){
+  const isIncome=e.type==='income';
+  const amtClass=isIncome?'amount-pos':'amount-neg';
+  const displayCat=catDisplayName(e.category,e.subcategory);
+  const dateStr=e.date?e.date.slice(5):'';
+  const meta=[e.note,e.payment].filter(Boolean).join(' · ');
+  return `<div class="entry-row">
+    <div class="entry-cat">
+      <div class="entry-name">${displayCat}</div>
+      ${meta?`<div class="entry-meta">${meta}</div>`:''}
+    </div>
+    <span class="entry-date">${dateStr}</span>
+    <span class="entry-amount ${amtClass}">${isIncome?'+':'-'}${fmt(parseAmt(e.amount))}</span>
+    <button class="icon-btn edit" onclick="editEntry('${e.id}')">✎</button>
+    <button class="icon-btn del"  onclick="deleteEntry('${e.id}')">✕</button>
+  </div>`;
+}
+function deleteEntry(id){ const md=getMonthData(currentYear,currentMonth); md.entries=md.entries.filter(e=>e.id!==id); saveData(); renderAll(); }
+window.deleteEntry=deleteEntry;
+
+function renderAll(){
+  document.getElementById('month-label').textContent=`${I18N[lang].months[currentMonth]} ${currentYear}`;
+  renderBalance(); renderEntries();
+  const md=getMonthData(currentYear,currentMonth);
+  const hasOrd=(md.entries||[]).some(e=>e.category==='ordinarios');
+  document.getElementById('ord-fab-btn').style.display=hasOrd?'block':'none';
+}
+
+// ══ ENTRY MODAL ══
+function openModal(){
+  editingId=null; setType('expense');
+  document.getElementById('entry-date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('entry-amount').value=''; document.getElementById('entry-note').value='';
+  document.getElementById('modal-title-text').textContent=I18N[lang].modalTitle;
+  document.getElementById('save-btn').textContent=I18N[lang].saveBtn;
+  populateCategorySelect(); populatePaymentSelect();
+  document.getElementById('modal-overlay').classList.add('open');
+}
+window.openModal=openModal;
+function closeModal(){ document.getElementById('modal-overlay').classList.remove('open'); }
+window.closeModal=closeModal;
+function closeModalOutside(ev){ if(ev.target===document.getElementById('modal-overlay')) closeModal(); }
+window.closeModalOutside=closeModalOutside;
+
+function setType(t){
+  entryType=t;
+  document.getElementById('btn-income').className ='type-btn'+(t==='income'?' active-income':'');
+  document.getElementById('btn-expense').className='type-btn'+(t==='expense'?' active-expense':'');
+  populateCategorySelect();
+}
+window.setType=setType;
+
+function populateCategorySelect(){
+  const sel=document.getElementById('entry-category'); sel.innerHTML='';
+  document.getElementById('subcategory-group').style.display='none';
+  if(entryType==='income'){
+    CATEGORIES.income.items.forEach(item=>{ const o=document.createElement('option'); o.value=item.id; o.textContent=item.i18n[lang]; sel.appendChild(o); });
+  } else {
+    ['ordinarios','formacion','otros_personales','obligaciones','administracion','otros_no_incluidos'].forEach(gid=>{
+      const g=CATEGORIES[gid]; const o=document.createElement('option'); o.value=gid; o.textContent=g.i18n[lang]; sel.appendChild(o);
+    });
+    onCategoryChange();
+  }
+}
+function onCategoryChange(){
+  if(entryType!=='expense') return;
+  const catId=document.getElementById('entry-category').value; const g=CATEGORIES[catId];
+  const subGroup=document.getElementById('subcategory-group'); const subSel=document.getElementById('entry-subcategory');
+  if(g&&g.subcats&&g.subcats.length>0){
+    subSel.innerHTML=''; g.subcats.forEach(sub=>{ const o=document.createElement('option'); o.value=sub.id; o.textContent=sub.i18n[lang]; subSel.appendChild(o); });
+    document.getElementById('subcategory-note').textContent=g.isOrdinary?I18N[lang].subNote_ordinarios:'';
+    subGroup.style.display='block';
+  } else subGroup.style.display='none';
+}
+window.onCategoryChange=onCategoryChange;
+
+function editEntry(id){
+  const md=getMonthData(currentYear,currentMonth); const e=md.entries.find(x=>x.id===id); if(!e) return;
+  editingId=id; setType(e.type);
+  document.getElementById('entry-category').value=e.category; onCategoryChange();
+  if(e.subcategory) document.getElementById('entry-subcategory').value=e.subcategory;
+  document.getElementById('entry-amount').value=fmt(parseAmt(e.amount));
+  document.getElementById('entry-date').value=e.date||''; document.getElementById('entry-note').value=e.note||'';
+  populatePaymentSelect(e.payment||'');
+  document.getElementById('modal-title-text').textContent=I18N[lang].modalTitleEdit;
+  document.getElementById('save-btn').textContent=I18N[lang].saveBtn;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+window.editEntry=editEntry;
+
+function saveEntry(){
+  const amount=parseAmt(document.getElementById('entry-amount').value);
+  if(isNaN(amount)||amount<=0){ document.getElementById('entry-amount').focus(); return; }
+  const catId=document.getElementById('entry-category').value;
+  const g=entryType==='expense'?CATEGORIES[catId]:null;
+  const subcatId=(g&&g.subcats&&document.getElementById('subcategory-group').style.display!=='none')?document.getElementById('entry-subcategory').value:null;
+  const payment=document.getElementById('entry-payment').value||'';
+  const md=getMonthData(currentYear,currentMonth);
+  const ed={type:entryType,category:catId,subcategory:subcatId,amount,date:document.getElementById('entry-date').value,note:document.getElementById('entry-note').value.trim(),payment};
+  if(editingId){ const idx=md.entries.findIndex(x=>x.id===editingId); if(idx!==-1) md.entries[idx]={...md.entries[idx],...ed}; editingId=null; }
+  else md.entries.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2),...ed});
+  saveData(); closeModal(); renderAll();
+}
+window.saveEntry=saveEntry;
+
+// ══ EXPORT ══
+let exportShareText='', exportTsvText='', ordShareText='';
+
+function buildExportData(){
+  const t=I18N[lang]; const md=getMonthData(currentYear,currentMonth);
+  const initials=userId.split('_')[0]||'??';
+  const firstBank=(config.banks&&config.banks[0]&&config.banks[0].name)?config.banks[0].name:'';
+  const prevFinal=getPrevMonthFinal(); const iniVal=prevFinal!==null?prevFinal:(parseAmt(md.initialBalance)||0);
+  const entries=[...(md.entries||[])].sort((a,b)=>a.date>b.date?1:-1);
+  let inc=0,exp=0; entries.forEach(e=>{ if(e.type==='income') inc+=parseAmt(e.amount)||0; else exp+=parseAmt(e.amount)||0; });
+  const finalBal=iniVal+inc-exp;
+  const pad=(s,n)=>String(s).padEnd(n,' '); const padL=(s,n)=>String(s).padStart(n,' ');
+  const LINE='─'.repeat(36);
+  let share=`📋 ${t.months[currentMonth]} ${currentYear}\n👤 ${initials}\n${LINE}\n`;
+  share+=`${pad(t.shareIniLabel,22)}${padL(fmt(iniVal),14)}\n${LINE}\n`;
+  entries.forEach(e=>{
+    const cat=EXPORT_LABEL[e.subcategory||e.category]||e.category;
+    const amt=parseAmt(e.amount)||0; const sign=e.type==='income'?'+':'-';
+    const desc=e.note?` (${e.note})`:''; const label=cat+(desc.length<=18?desc:'');
+    const bank=e.payment||firstBank;
+    share+=`${sign} ${pad(label,24)}${padL(fmt(amt),10)}${bank?'   '+bank:''}\n`;
+  });
+  share+=`${LINE}\n${pad(t.shareFinLabel,22)}${padL(fmt(finalBal),14)}\n`;
+  exportShareText=share;
+  const header=['Fecha','Categoría','Descripción','Realizado','Caja/Bancos ct','Iniciales','Banco/persona'];
+  const firstDay=`01.${String(currentMonth+1).padStart(2,'0')}.${currentYear}`;
+  const rows=[header,[firstDay,'Saldo anterior','',fmt(iniVal),initials,initials,firstBank]];
+  entries.forEach(e=>{
+    const catLabel=EXPORT_LABEL[e.subcategory||e.category]||e.category;
+    const amt=parseAmt(e.amount)||0; const signed=e.type==='income'?amt:-amt; const bank=e.payment||firstBank;
+    rows.push([fmtDateExport(e.date),catLabel,e.note||'',fmt(signed),initials,initials,bank]);
+  });
+  exportTsvText=rows.map(r=>r.join('\t')).join('\n');
+}
+
+function switchExportTab(tab){
+  ['share','excel'].forEach(t=>{
+    document.getElementById('export-tab-'+t).classList.toggle('active',t===tab);
+    document.getElementById('export-view-'+t).style.display=t===tab?'block':'none';
+  });
+}
+window.switchExportTab=switchExportTab;
+
+function openExport(){
+  const t=I18N[lang]; buildExportData();
+  document.getElementById('export-title-text').textContent=`${t.exportTitle} — ${t.months[currentMonth]} ${currentYear}`;
+  document.getElementById('export-box-share').textContent=exportShareText;
+  document.getElementById('export-box-excel').textContent=exportTsvText;
+  document.getElementById('share-success').textContent=''; document.getElementById('copy-success').textContent='';
+  switchExportTab('share');
+  document.getElementById('export-overlay').classList.add('open');
+}
+window.openExport=openExport;
+function closeExport(){ document.getElementById('export-overlay').classList.remove('open'); }
+window.closeExport=closeExport;
+function closeExportOutside(ev){ if(ev.target===document.getElementById('export-overlay')) closeExport(); }
+window.closeExportOutside=closeExportOutside;
+
+function doShare(text,successElId,titleText){
+  const t=I18N[lang];
+  const showMsg=(msg)=>{ const el=document.getElementById(successElId); el.innerHTML=msg; setTimeout(()=>el.innerHTML='',3500); };
+  const copyFb=()=>{ try{ const ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.focus(); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); showMsg(t.copiedMsg); }catch(e){ showMsg('❌ Error'); } };
+  if(navigator.share&&/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)){
+    navigator.share({title:titleText,text}).catch(err=>{ if(err.name!=='AbortError') copyFb(); });
+  } else {
+    showMsg(`<span style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:4px">
+      <button onclick="(function(){var ta=document.createElement('textarea');ta.value=${JSON.stringify(text)};ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.focus();ta.select();document.execCommand('copy');document.body.removeChild(ta);document.getElementById('${successElId}').textContent='${t.copiedMsg}';setTimeout(()=>document.getElementById('${successElId}').textContent='',2500);})()"
+        style="background:var(--accent);color:white;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:0.82rem;font-family:DM Sans,sans-serif;font-weight:600">📋 Copiar</button>
+      <button onclick="window.open('https://wa.me/?text='+encodeURIComponent(${JSON.stringify(text)}),'_blank')"
+        style="background:#25D366;color:white;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:0.82rem;font-family:DM Sans,sans-serif;font-weight:600">💬 WhatsApp</button>
+    </span>`);
+  }
+}
+function shareExport(){ doShare(exportShareText,'share-success',`${I18N[lang].months[currentMonth]} ${currentYear}`); }
+window.shareExport=shareExport;
+function copyExport(){
+  const t=I18N[lang]; const show=()=>{ document.getElementById('copy-success').textContent=t.copiedMsg; setTimeout(()=>document.getElementById('copy-success').textContent='',2500); };
+  if(navigator.clipboard){ navigator.clipboard.writeText(exportTsvText).then(show).catch(fb); } else fb();
+  function fb(){ const ta=document.createElement('textarea'); ta.value=exportTsvText; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); show(); }
+}
+window.copyExport=copyExport;
+
+// ── Ordinary breakdown ──
+function buildOrdText(){
+  const t=I18N[lang]; const md=getMonthData(currentYear,currentMonth);
+  const initials=userId.split('_')[0]||'??';
+  const firstBank=(config.banks&&config.banks[0]&&config.banks[0].name)?config.banks[0].name:'';
+  const entries=[...(md.entries||[])].filter(e=>e.category==='ordinarios').sort((a,b)=>a.date>b.date?1:-1);
+  if(!entries.length) return '';
+  const LINE='─'.repeat(36); const pad=(s,n)=>String(s).padEnd(n,' '); const padL=(s,n)=>String(s).padStart(n,' ');
+  let text=`📋 ${t.ordExportTitle} — ${t.months[currentMonth]} ${currentYear}\n👤 ${initials}\n${LINE}\n`;
+  entries.forEach(e=>{
+    const sub=e.subcategory?(CATEGORIES.ordinarios.subcats.find(s=>s.id===e.subcategory)||{i18n:{es:'',pl:''}}).i18n[lang]:'';
+    const desc=[sub,e.note].filter(Boolean).join(' · ');
+    const dateStr=e.date?e.date.slice(5):''; const bank=e.payment||firstBank;
+    text+=`${dateStr}  ${pad(desc,26)}${padL(fmt(parseAmt(e.amount)),10)}${bank?'   '+bank:''}\n`;
+  });
+  const total=entries.reduce((s,e)=>s+(parseAmt(e.amount)||0),0);
+  text+=`${LINE}\n${pad('Total',32)}${padL(fmt(total),10)}\n`;
+  return text;
+}
+function openOrdExport(){
+  const t=I18N[lang]; ordShareText=buildOrdText(); if(!ordShareText) return;
+  document.getElementById('ord-title-text').textContent=`${t.ordExportTitle} — ${t.months[currentMonth]} ${currentYear}`;
+  document.getElementById('ord-box').textContent=ordShareText;
+  document.getElementById('ord-success').textContent='';
+  document.getElementById('ord-overlay').classList.add('open');
+}
+window.openOrdExport=openOrdExport;
+function closeOrdExport(){ document.getElementById('ord-overlay').classList.remove('open'); }
+window.closeOrdExport=closeOrdExport;
+function shareOrdExport(){ doShare(ordShareText,'ord-success',I18N[lang].ordExportTitle); }
+window.shareOrdExport=shareOrdExport;
+
+// ══ YEAR-END ══
+function checkYearEnd(){
+  if(currentMonth!==0) return;
+  const prevYear=currentYear-1;
+  const key=`yearEnd_${userId}_${prevYear}`;
+  if(localStorage.getItem(key)) return;
+  const hasData=Object.keys(data).some(k=>k.startsWith(`${prevYear}-`));
+  if(!hasData) return;
+  const decFinal=calcFinal(prevYear,11);
+  const t=I18N[lang];
+  document.getElementById('yearend-title').textContent=t.yearEndTitle.replace('{y}',currentYear);
+  document.getElementById('yearend-msg').textContent=t.yearEndMsg.replace('{y}',prevYear);
+  document.getElementById('yearend-balance').textContent=fmt(decFinal);
+  document.getElementById('yearend-explain').textContent=t.yearEndExplain.replace('{y}',prevYear);
+  document.getElementById('yearend-archive-btn').textContent=t.yearEndArchive;
+  document.getElementById('yearend-keep-btn').textContent=t.yearEndKeep;
+  document.getElementById('yearend-overlay').classList.add('open');
+}
+function doArchive(){
+  const prevYear=currentYear-1; const decFinal=calcFinal(prevYear,11);
+  Object.keys(data).filter(k=>k.startsWith(`${prevYear}-`)).forEach(k=>delete data[k]);
+  getMonthData(currentYear,0).initialBalance=decFinal;
+  saveData(); localStorage.setItem(`yearEnd_${userId}_${prevYear}`,'archived');
+  document.getElementById('yearend-overlay').classList.remove('open'); renderAll();
+}
+window.doArchive=doArchive;
+function doKeep(){
+  localStorage.setItem(`yearEnd_${userId}_${currentYear-1}`,'kept');
+  document.getElementById('yearend-overlay').classList.remove('open');
+}
+window.doKeep=doKeep;
+
+// ══ INIT ══
+(async()=>{
+  // Check for existing session
+  const savedSession=localStorage.getItem('cuentaSession_v1');
+  if(savedSession){
+    userId=savedSession;
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('sync-indicator') && (document.getElementById('sync-indicator').textContent='⏳');
+    await loadFromFirebase();
+    if(lang && Object.keys(data).length>0 || config.banks.length>0){
+      launchApp();
+    } else {
+      document.getElementById('lang-screen').style.display='flex';
+    }
+  }
+  // else: login screen is already visible
+})();
+</script>
+</body>
+</html>
