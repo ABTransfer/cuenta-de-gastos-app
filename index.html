@@ -146,6 +146,22 @@
   .copy-btn{width:100%;padding:13px;background:var(--accent);color:white;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:0.95rem;font-weight:600;cursor:pointer;transition:background 0.2s;}
   .copy-btn:hover{background:var(--accent2);}
   .copy-success{text-align:center;color:var(--green);font-size:0.85rem;margin-top:8px;min-height:20px;font-weight:600;}
+
+  /* HELP */
+  .help-content{font-size:0.92rem;line-height:1.55;color:var(--ink);}
+  .help-content h2{font-family:'DM Serif Display',serif;font-size:1.18rem;color:var(--accent);margin:18px 0 8px;line-height:1.2;}
+  .help-content h2:first-child{margin-top:0;}
+  .help-content h3{font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;color:var(--ink);margin:14px 0 6px;}
+  .help-content p{margin-bottom:10px;}
+  .help-content ul,.help-content ol{margin:0 0 12px 22px;padding:0;}
+  .help-content li{margin-bottom:6px;}
+  .help-content strong{color:var(--ink);font-weight:600;}
+  .help-content code{background:var(--surface2);padding:1px 6px;border-radius:4px;font-size:0.85rem;font-family:monospace;}
+  .help-content table{width:100%;border-collapse:collapse;margin:10px 0 14px;font-size:0.85rem;}
+  .help-content th,.help-content td{border:1px solid var(--border);padding:7px 9px;text-align:left;vertical-align:top;}
+  .help-content th{background:var(--surface2);font-weight:600;}
+  .help-content .help-summary{background:var(--green-light);border-left:3px solid var(--accent);padding:10px 14px;border-radius:6px;margin:10px 0;font-size:0.9rem;}
+  .help-content hr{border:none;border-top:1px solid var(--border);margin:18px 0;}
 </style>
 </head>
 <body>
@@ -214,6 +230,7 @@
   <div class="app-header">
     <div class="header-top">
       <span class="app-title" id="app-title">Cuenta Personal</span>
+      <button class="hdr-btn" onclick="openHelp()" id="help-btn-hdr" title="Ayuda">❓</button>
       <button class="hdr-btn" onclick="openConfig()">⚙ <span id="cfg-btn-label">Config</span></button>
       <button class="hdr-btn" onclick="showLangScreen()">🌐 <span id="lang-name">ES</span></button>
     </div>
@@ -350,6 +367,17 @@
   </div>
 </div>
 
+<!-- ══ HELP MODAL ══ -->
+<div class="modal-overlay" id="help-overlay" onclick="if(event.target===this)closeHelp()">
+  <div class="modal" style="max-height:92vh">
+    <div class="modal-title">
+      <span id="help-title-text">Ayuda</span>
+      <button class="close-btn" onclick="closeHelp()">✕</button>
+    </div>
+    <div id="help-content" class="help-content"></div>
+  </div>
+</div>
+
 <!-- ══ YEAR-END DIALOG ══ -->
 <div class="modal-overlay" id="yearend-overlay">
   <div class="modal" style="text-align:center">
@@ -462,7 +490,8 @@ const I18N={
     syncSaving:'Guardando...', syncOk:'✓ Guardado', syncErr:'⚠ Error al guardar',
     yearEndTitle:'¡Bienvenida a {y}!',yearEndMsg:'Has cerrado el año {y}. Tu saldo final de diciembre fue:',
     yearEndExplain:'¿Quieres borrar los datos de {y} y empezar enero limpio con ese saldo?',
-    yearEndArchive:'Archivar año anterior y empezar limpio',yearEndKeep:'Mantener todos los datos'
+    yearEndArchive:'Archivar año anterior y empezar limpio',yearEndKeep:'Mantener todos los datos',
+    helpTitle:'Guía de uso'
   },
   pl:{appTitle:'Konto Osobiste',langName:'PL',months:MONTHS_PL,
     tabAll:'Wszystko',tabIncome:'Dochody',tabExpenses:'Wydatki',
@@ -489,8 +518,117 @@ const I18N={
     syncSaving:'Zapisywanie...', syncOk:'✓ Zapisano', syncErr:'⚠ Błąd zapisu',
     yearEndTitle:'Witaj w {y}!',yearEndMsg:'Rok {y} został zamknięty. Saldo końcowe grudnia:',
     yearEndExplain:'Czy chcesz usunąć dane z {y} i zacząć styczeń od nowa z tym saldem?',
-    yearEndArchive:'Zarchiwizuj i zacznij od nowa',yearEndKeep:'Zachowaj wszystkie dane'
+    yearEndArchive:'Zarchiwizuj i zacznij od nowa',yearEndKeep:'Zachowaj wszystkie dane',
+    helpTitle:'Instrukcja obsługi'
   }
+};
+
+// ══ HELP CONTENT (per language) ══
+const HELP_HTML = {
+  es: `
+    <h2>¿Qué es esta app?</h2>
+    <p>Una herramienta para llevar tus ingresos y gastos personales mes a mes, con las mismas categorías que utiliza el centro en su contabilidad. Al final de cada mes podrás enviar tu resumen para que se incorpore al Excel general del centro.</p>
+
+    <h2>Primer acceso</h2>
+    <ol>
+      <li><strong>Iniciales y PIN</strong>: introduce tus iniciales (ej. MVM) y un PIN que recuerdes (mínimo 4 caracteres). La primera vez que entres se creará tu cuenta automáticamente.</li>
+      <li><strong>Importante</strong>: el PIN no se puede recuperar. Apúntalo en un sitio seguro. Si lo olvidas, perderás el acceso a tus datos.</li>
+      <li><strong>Idioma</strong>: la primera vez elige español o polaco. Puedes cambiarlo después con el botón 🌐 de la cabecera.</li>
+      <li><strong>Tus datos son privados</strong>: nadie más, ni siquiera quien recoge los resúmenes mensuales del centro, puede ver tus movimientos. Solo se ve lo que tú envías al exportar el mes.</li>
+    </ol>
+
+    <h2>Configuración inicial (recomendado)</h2>
+    <p>Pulsa <strong>⚙ Config</strong> y añade tus bancos o cuentas (ej. "SEB IG", "Efectivo", "PKO"). El primero que añadas será el predeterminado al añadir movimientos. Esto te ahorrará tiempo después.</p>
+
+    <h2>Uso diario</h2>
+
+    <h3>Añadir un movimiento</h3>
+    <p>Pulsa el botón <strong>+</strong> abajo a la derecha:</p>
+    <ul>
+      <li><strong>Tipo</strong>: ingreso o gasto.</li>
+      <li><strong>Categoría</strong>: elige entre las categorías del centro (más abajo te explico cuáles son).</li>
+      <li><strong>Desglose</strong> (solo en algunas categorías): subcategoría más concreta.</li>
+      <li><strong>Importe</strong>: escribe el número con coma decimal (ej. <code>1.234,56</code>).</li>
+      <li><strong>Fecha</strong>: por defecto la de hoy.</li>
+      <li><strong>Banco/Pago</strong>: el banco o "Efectivo".</li>
+      <li><strong>Nota</strong>: opcional, para acordarte de qué fue.</li>
+    </ul>
+
+    <h3>Editar o borrar</h3>
+    <p>En cada movimiento de la lista verás un lápiz ✎ (editar) y una equis ✕ (borrar).</p>
+
+    <h3>Saldo del mes</h3>
+    <p>Arriba de todo ves cuatro líneas:</p>
+    <ul>
+      <li><strong>Saldo inicial</strong>: lo que tenías al empezar el mes.</li>
+      <li><strong>Total ingresos</strong>.</li>
+      <li><strong>Total gastos</strong>.</li>
+      <li><strong>Saldo final</strong>: el saldo inicial más los ingresos menos los gastos.</li>
+    </ul>
+    <p>El saldo final de cada mes se traslada automáticamente como saldo inicial del siguiente. Solo tienes que introducir manualmente el saldo de enero la primera vez.</p>
+
+    <h3>Cambiar de mes</h3>
+    <p>Usa las flechas ‹ y › (el signo es como una "y" girada, no <code>&lt;</code> ni <code>&gt;</code>) de la cabecera para moverte entre meses. Puedes ir hacia atrás para revisar meses pasados o hacia adelante.</p>
+
+    <h2>Las dos exportaciones — qué hace cada una</h2>
+    <p>Esto es importante porque hacen cosas distintas.</p>
+
+    <h3>📤 Exportar mes</h3>
+    <p>Tiene dos pestañas:</p>
+    <ul>
+      <li><strong>📲 Enviar</strong>: una vista bonita y legible, pensada para mandar por WhatsApp. Muestra todos tus movimientos del mes uno a uno con fecha, categoría, importe y banco. Útil para que tú mismo guardes una copia o se la mandes a quien lleva la contabilidad.</li>
+      <li><strong>📊 Excel</strong>: dos tablas pensadas para pegar directamente en el Excel del centro:
+        <ul>
+          <li><strong>Resumen por categoría</strong>: una sola línea por cada categoría con la suma total del mes (no aparecen los movimientos uno a uno, solo el total por categoría). La fecha es siempre el último día del mes.</li>
+          <li><strong>Información</strong>: el saldo del mes anterior y el saldo a final de mes.</li>
+        </ul>
+        Pulsando "Copiar al portapapeles" se copian las dos tablas juntas. Las pegas en un Excel y lo envías a la d o al cl.
+      </li>
+    </ul>
+
+    <h3>📋 Desglose ordinarios</h3>
+    <p><strong>Solo aparece si has registrado gastos en la categoría "Gastos ordinarios"</strong> ese mes.</p>
+    <p>Sirve para una cosa concreta: la categoría "Gastos ordinarios" en el Excel del centro aparece como una sola línea con la suma total, pero internamente tú quieres saber qué la compone (compra, transporte, comida, libros, etc.). Este botón genera un detalle solo de esos movimientos ordinarios para enviárselo a la d, separado de la exportación general.</p>
+
+    <p><strong>Diferencia clave entre "Exportar mes" y "Desglose ordinarios":</strong></p>
+    <table>
+      <tr><th></th><th>Exportar mes</th><th>Desglose ordinarios</th></tr>
+      <tr><td><strong>Qué incluye</strong></td><td>Todas las categorías del mes, sumadas</td><td>Solo los movimientos individuales de "Gastos ordinarios"</td></tr>
+      <tr><td><strong>Formato</strong></td><td>Sumas por categoría (1 línea cada una)</td><td>Cada movimiento por separado, con fecha y nota</td></tr>
+      <tr><td><strong>Destinatario</strong></td><td>A la d o a alguien del cl (va al Excel del centro)</td><td>A la d (detalle de los gastos ordinarios)</td></tr>
+    </table>
+    <div class="help-summary">Resumiendo: <strong>"Exportar mes"</strong> es la cifra global que va al Excel; <strong>"Desglose ordinarios"</strong> es el detalle que hay detrás de la línea "Gastos ordinarios".</div>
+
+    <h2>Categorías</h2>
+    <p><strong>Ingresos:</strong></p>
+    <ul>
+      <li>Sueldo</li>
+      <li>Otros ingresos personales</li>
+    </ul>
+    <p><strong>Gastos:</strong></p>
+    <ul>
+      <li><strong>Gastos ordinarios</strong> — los del día a día (con desglose: Ordinarios / Estudio).</li>
+      <li><strong>Medios de formación</strong> — CRT, CA, otros, con sus viajes asociados.</li>
+      <li><strong>Otros gastos personales</strong> — médicos, viajes, ropa.</li>
+      <li><strong>Obligaciones</strong> — cámara profesional, residencia y SS, créditos, vivienda (si no se vive en el ctr), ayuda familiar, coche, jubilación.</li>
+      <li><strong>Administración</strong>.</li>
+      <li><strong>Otros</strong> — todo lo que no encaja arriba.</li>
+    </ul>
+
+    <h2>Cierre de año</h2>
+    <p>Al entrar en enero por primera vez, la app te pregunta si quieres archivar los datos del año anterior y empezar limpio (manteniendo el saldo de diciembre como saldo inicial de enero) o conservarlo todo. Tú decides.</p>
+
+    <h2>Formato de los números</h2>
+    <p>La app usa formato polaco: <strong>punto como separador de miles</strong> y <strong>coma como decimal</strong>. Ejemplo: mil doscientos treinta y cuatro con cincuenta y seis céntimos se escribe <code>1.234,56</code>.</p>
+  `,
+
+  // ── PL placeholder: same content as ES until traducción aprobada ──
+  pl: `
+    <p style="background:var(--surface2);padding:10px 14px;border-radius:8px;font-size:0.85rem;color:var(--ink2);margin-bottom:14px">
+      <em>Polska wersja w przygotowaniu — poniżej wersja hiszpańska tymczasowo.</em>
+    </p>
+    <!--PL_PLACEHOLDER-->
+  `
 };
 
 // ══ STATE ══
@@ -629,10 +767,12 @@ function applyI18n(){
     'ord-note':t.ordExportNote,'ord-share-btn':t.shareBtn,
     'cfg-title':t.cfgTitle,'cfg-banks-title':t.cfgBanks,'cfg-banks-note':t.cfgBanksNote,
     'cfg-add-bank':t.cfgAddBank,'cfg-save-btn':t.cfgSave,
-    'cfg-account-title':t.cfgAccount,'cfg-logged-as':t.cfgLoggedAs+' ','cfg-logout-btn':t.cfgLogout
+    'cfg-account-title':t.cfgAccount,'cfg-logged-as':t.cfgLoggedAs+' ','cfg-logout-btn':t.cfgLogout,
+    'help-title-text':t.helpTitle
   };
   Object.entries(ids).forEach(([id,val])=>{ const el=document.getElementById(id); if(el) el.textContent=val; });
   document.getElementById('lbl-final').innerHTML=`<strong>${t.lblFinal}</strong>`;
+  const hb=document.getElementById('help-btn-hdr'); if(hb) hb.title=t.helpTitle;
 }
 
 // ══ CONFIG ══
@@ -645,6 +785,25 @@ window.openConfig = openConfig;
 
 function closeConfig(){ document.getElementById('config-screen').style.display='none'; }
 window.closeConfig = closeConfig;
+
+// ══ HELP ══
+function openHelp(){
+  const t=I18N[lang];
+  document.getElementById('help-title-text').textContent=t.helpTitle;
+  let html=HELP_HTML[lang]||HELP_HTML.es;
+  // PL placeholder: inject ES content beneath the "in preparation" notice
+  if(lang==='pl' && html.includes('<!--PL_PLACEHOLDER-->')){
+    html=html.replace('<!--PL_PLACEHOLDER-->', HELP_HTML.es);
+  }
+  document.getElementById('help-content').innerHTML=html;
+  document.getElementById('help-overlay').classList.add('open');
+  // scroll to top each open
+  const modal=document.querySelector('#help-overlay .modal'); if(modal) modal.scrollTop=0;
+}
+window.openHelp=openHelp;
+
+function closeHelp(){ document.getElementById('help-overlay').classList.remove('open'); }
+window.closeHelp=closeHelp;
 
 function saveConfig(){
   config.banks=[];
