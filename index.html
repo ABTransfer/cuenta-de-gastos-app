@@ -142,6 +142,7 @@
 
   /* EXPORT */
   .export-box{background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:14px;font-family:monospace;font-size:0.75rem;line-height:1.7;white-space:pre;overflow-x:auto;max-height:300px;overflow-y:auto;color:var(--ink);margin-bottom:12px;}
+  .export-section-title{font-family:'DM Serif Display',serif;font-size:0.95rem;color:var(--ink);margin:14px 0 6px;}
   .copy-btn{width:100%;padding:13px;background:var(--accent);color:white;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:0.95rem;font-weight:600;cursor:pointer;transition:background 0.2s;}
   .copy-btn:hover{background:var(--accent2);}
   .copy-success{text-align:center;color:var(--green);font-size:0.85rem;margin-top:8px;min-height:20px;font-weight:600;}
@@ -325,7 +326,10 @@
     </div>
     <div id="export-view-excel" style="display:none">
       <p class="detail-note" id="export-excel-note" style="margin-bottom:10px"></p>
+      <div class="export-section-title" id="lbl-excel-summary">Resumen por categoría</div>
       <div class="export-box" id="export-box-excel"></div>
+      <div class="export-section-title" id="lbl-excel-info">Información</div>
+      <div class="export-box" id="export-box-info"></div>
       <button class="copy-btn" onclick="copyExport()" id="copy-btn" style="margin-top:12px"></button>
       <p class="copy-success" id="copy-success"></p>
     </div>
@@ -419,6 +423,16 @@ const EXPORT_LABEL={
   administracion:'Administración',otros_no_incluidos:'Otros'
 };
 
+// Categoría agregada para el resumen del Excel: cada entry se mapea a su grupo principal.
+// Ingresos -> "Sueldos" / "Otros ingresos" (ya son el grupo). Gastos -> grupo principal (ordinarios, formacion, ...).
+function getSummaryCategoryKey(e){
+  if(e.type==='income') return e.category; // sueldo / otros_ingresos
+  return e.category; // ordinarios, formacion, otros_personales, obligaciones, administracion, otros_no_incluidos
+}
+function getSummaryCategoryLabel(key){
+  return EXPORT_LABEL[key] || key;
+}
+
 const MONTHS_ES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const MONTHS_PL=['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];
 
@@ -439,9 +453,11 @@ const I18N={
     exportBtn:'Exportar mes',exportTitle:'Exportar mes',
     etabShare:'Enviar',etabExcel:'Excel (pegar)',
     exportShareNote:'Vista legible para enviar por WhatsApp u otro.',
-    exportExcelNote:'Formato TSV para pegar en el Excel del centro.',
+    exportExcelNote:'Resumen agrupado por categoría + información. Pega ambas tablas en Excel.',
+    excelSummaryTitle:'Resumen por categoría',excelInfoTitle:'Información',
     shareBtn:'📲 Enviar / Compartir',copyBtn:'Copiar al portapapeles',copiedMsg:'✓ ¡Copiado!',cash:'Efectivo',
     shareIniLabel:'Saldo inicial',shareFinLabel:'Saldo final',
+    prevMonthBalance:'Saldo del mes anterior',endMonthBalance:'Saldo a final de mes',
     ordExportTitle:'Desglose gastos ordinarios',ordExportNote:'Detalle de gastos ordinarios del mes.',
     syncSaving:'Guardando...', syncOk:'✓ Guardado', syncErr:'⚠ Error al guardar',
     yearEndTitle:'¡Bienvenida a {y}!',yearEndMsg:'Has cerrado el año {y}. Tu saldo final de diciembre fue:',
@@ -464,9 +480,11 @@ const I18N={
     exportBtn:'Eksportuj miesiąc',exportTitle:'Eksportuj miesiąc',
     etabShare:'Wyślij',etabExcel:'Excel (wklej)',
     exportShareNote:'Czytelny widok do wysłania przez WhatsApp lub inny komunikator.',
-    exportExcelNote:'Format TSV do wklejenia do arkusza centrum.',
+    exportExcelNote:'Zestawienie według kategorii + informacje. Wklej obie tabele do Excela.',
+    excelSummaryTitle:'Zestawienie według kategorii',excelInfoTitle:'Informacje',
     shareBtn:'📲 Wyślij / Udostępnij',copyBtn:'Skopiuj do schowka',copiedMsg:'✓ Skopiowano!',cash:'Gotówka',
     shareIniLabel:'Saldo początkowe',shareFinLabel:'Saldo końcowe',
+    prevMonthBalance:'Saldo z poprzedniego miesiąca',endMonthBalance:'Saldo na koniec miesiąca',
     ordExportTitle:'Zestawienie wydatków zwykłych',ordExportNote:'Szczegóły zwykłych wydatków miesiąca.',
     syncSaving:'Zapisywanie...', syncOk:'✓ Zapisano', syncErr:'⚠ Błąd zapisu',
     yearEndTitle:'Witaj w {y}!',yearEndMsg:'Rok {y} został zamknięty. Saldo końcowe grudnia:',
@@ -605,6 +623,7 @@ function applyI18n(){
     'export-fab-btn':'📤 '+t.exportBtn,'export-title-text':t.exportTitle,
     'lbl-etab-share':t.etabShare,'lbl-etab-excel':t.etabExcel,
     'export-share-note':t.exportShareNote,'export-excel-note':t.exportExcelNote,
+    'lbl-excel-summary':t.excelSummaryTitle,'lbl-excel-info':t.excelInfoTitle,
     'share-btn':t.shareBtn,'copy-btn':t.copyBtn,
     'ord-fab-btn':'📋 '+t.ordExportTitle,'ord-title-text':t.ordExportTitle,
     'ord-note':t.ordExportNote,'ord-share-btn':t.shareBtn,
@@ -680,18 +699,45 @@ function switchTab(t){
 }
 window.switchTab=switchTab;
 
-// ══ NUMBER FORMAT ══
+// ══ NUMBER FORMAT (Polish style: dot=thousands, comma=decimal) ══
 function parseAmt(str){
   if(str===null||str===undefined||str==='') return NaN;
   let s=String(str).trim();
-  if(s.match(/,\d{1,2}$/)) s=s.replace(/\./g,'').replace(',','.');
-  else s=s.replace(/,/g,'');
+  // If it has a comma followed by 1-2 digits at the end, treat comma as decimal separator
+  if(s.match(/,\d{1,2}$/)) s=s.replace(/\s/g,'').replace(/\./g,'').replace(',','.');
+  // If it has a dot followed by 1-2 digits at the end and no comma, treat dot as decimal (legacy / pasted data)
+  else if(s.match(/\.\d{1,2}$/) && !s.includes(',')) {
+    // ambiguous: could be 1.234 (thousands) or 1.23 (decimal). If the integer part has > 3 digits before the dot
+    // or the dot is followed by exactly 1-2 digits and there are no other dots, treat as decimal.
+    const parts=s.split('.');
+    if(parts.length===2 && parts[1].length<=2) s=s.replace(/\s/g,'');
+    else s=s.replace(/\s/g,'').replace(/\./g,'');
+  }
+  else s=s.replace(/\s/g,'').replace(/[.,]/g,'');
   return parseFloat(s);
 }
+
+// Polish format: thousands separator = ".", decimal separator = ","
+// Using 'pl-PL' locale which uses non-breaking-space as thousands; we replace it with "." for cleaner look as Polish typically uses spaces or dots.
+// Per user request: "los decimales van despues de una ',' y no despues de un '.'" -> ensure comma decimal.
+// We keep "." or " " as thousands; using "." to be unambiguously polish-style.
 function fmt(num){
   if(isNaN(num)) return '0,00';
-  return num.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const sign=num<0?'-':'';
+  const abs=Math.abs(num);
+  // Build with fixed 2 decimals, then split and add thousand dots manually for consistency.
+  const fixed=abs.toFixed(2);
+  const [intPart,decPart]=fixed.split('.');
+  const intWithDots=intPart.replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+  return sign+intWithDots+','+decPart;
 }
+
+// Plain number for Excel cell (keeps comma decimal so Polish Excel parses it as number).
+function fmtExcelNum(num){
+  if(isNaN(num)) return '0,00';
+  return num.toFixed(2).replace('.',',');
+}
+
 function fmtDateExport(iso){
   if(!iso) return '';
   const [y,m,d]=iso.split('-');
@@ -889,7 +935,12 @@ function saveEntry(){
 window.saveEntry=saveEntry;
 
 // ══ EXPORT ══
-let exportShareText='', exportTsvText='', ordShareText='';
+let exportShareText='', exportTsvSummary='', exportTsvInfo='', ordShareText='';
+
+function lastDayOfMonth(y,m){
+  // m is 0-based; new Date(y, m+1, 0) gives last day of month m
+  return new Date(y, m+1, 0).getDate();
+}
 
 function buildExportData(){
   const t=I18N[lang]; const md=getMonthData(currentYear,currentMonth);
@@ -899,6 +950,8 @@ function buildExportData(){
   const entries=[...(md.entries||[])].sort((a,b)=>a.date>b.date?1:-1);
   let inc=0,exp=0; entries.forEach(e=>{ if(e.type==='income') inc+=parseAmt(e.amount)||0; else exp+=parseAmt(e.amount)||0; });
   const finalBal=iniVal+inc-exp;
+
+  // ── Share view (legible, unchanged) ──
   const pad=(s,n)=>String(s).padEnd(n,' '); const padL=(s,n)=>String(s).padStart(n,' ');
   const LINE='─'.repeat(36);
   let share=`📋 ${t.months[currentMonth]} ${currentYear}\n👤 ${initials}\n${LINE}\n`;
@@ -912,17 +965,60 @@ function buildExportData(){
   });
   share+=`${LINE}\n${pad(t.shareFinLabel,22)}${padL(fmt(finalBal),14)}\n`;
   exportShareText=share;
-  const header=['Fecha','Categoría','Descripción','Realizado','Caja/Bancos ct','Iniciales','Banco/persona'];
-  const firstDay=`01.${String(currentMonth+1).padStart(2,'0')}.${currentYear}`;
+
+  // ── Excel: SUMMARY (grouped by Categoría, last day of month, blank description) ──
+  // Aggregate amounts per category. Income kept positive. Expense kept negative (signed).
+  const lastDay=lastDayOfMonth(currentYear,currentMonth);
+  const lastDayStr=`${String(lastDay).padStart(2,'0')}.${String(currentMonth+1).padStart(2,'0')}.${currentYear}`;
   const cash=I18N[lang].cash;
-  const rows=[header,[firstDay,'Saldo anterior','',iniVal.toFixed(2),'',initials,firstBank]];
+
+  // Order: incomes first (sueldo, otros_ingresos), then expense groups in canonical order
+  const incomeOrder=['sueldo','otros_ingresos'];
+  const expenseOrder=['ordinarios','formacion','otros_personales','obligaciones','administracion','otros_no_incluidos'];
+  const totalsByCat={}; // key -> {sum, type, payment}
+  // Track if any entries used a specific payment for that category — if all same, use it; else blank.
+  const paymentsByCat={}; // key -> Set of payments
+
   entries.forEach(e=>{
-    const catLabel=EXPORT_LABEL[e.subcategory||e.category]||e.category;
-    const amt=parseAmt(e.amount)||0; const signed=e.type==='income'?amt:-amt;
-    const bank=e.payment===cash?'':(e.payment||'');
-    rows.push([fmtDateExport(e.date),catLabel,e.note||'',signed.toFixed(2),'',initials,bank]);
+    const key=getSummaryCategoryKey(e);
+    const amt=parseAmt(e.amount)||0;
+    const signed=e.type==='income'?amt:-amt;
+    if(!totalsByCat[key]) { totalsByCat[key]={sum:0,type:e.type}; paymentsByCat[key]=new Set(); }
+    totalsByCat[key].sum += signed;
+    const p=e.payment===cash?'':(e.payment||'');
+    paymentsByCat[key].add(p);
   });
-  exportTsvText=rows.map(r=>r.join('\t')).join('\n');
+
+  const summaryHeader=['Fecha','Categoría','Descripción','Realizado','Caja/Bancos ct','Iniciales','Banco/persona'];
+  const summaryRows=[summaryHeader];
+  const orderedKeys=[...incomeOrder, ...expenseOrder].filter(k=>totalsByCat[k]!==undefined);
+  // Append any unexpected keys at the end
+  Object.keys(totalsByCat).forEach(k=>{ if(!orderedKeys.includes(k)) orderedKeys.push(k); });
+
+  orderedKeys.forEach(k=>{
+    const v=totalsByCat[k];
+    const label=getSummaryCategoryLabel(k);
+    const payments=[...paymentsByCat[k]];
+    const bank = payments.length===1 ? payments[0] : '';
+    summaryRows.push([
+      lastDayStr,
+      label,
+      '',                       // descripción en blanco
+      fmtExcelNum(v.sum),       // signed amount
+      '',                       // Caja/Bancos ct
+      initials,
+      bank
+    ]);
+  });
+  exportTsvSummary=summaryRows.map(r=>r.join('\t')).join('\n');
+
+  // ── Excel: INFORMATION table (saldo mes anterior + saldo final) ──
+  const infoRows=[
+    ['', 'Información',''],
+    [t.prevMonthBalance, fmtExcelNum(iniVal), ''],
+    [t.endMonthBalance,  fmtExcelNum(finalBal), '']
+  ];
+  exportTsvInfo=infoRows.map(r=>r.join('\t')).join('\n');
 }
 
 function switchExportTab(tab){
@@ -937,7 +1033,8 @@ function openExport(){
   const t=I18N[lang]; buildExportData();
   document.getElementById('export-title-text').textContent=`${t.exportTitle} — ${t.months[currentMonth]} ${currentYear}`;
   document.getElementById('export-box-share').textContent=exportShareText;
-  document.getElementById('export-box-excel').textContent=exportTsvText;
+  document.getElementById('export-box-excel').textContent=exportTsvSummary;
+  document.getElementById('export-box-info').textContent=exportTsvInfo;
   document.getElementById('share-success').textContent=''; document.getElementById('copy-success').textContent='';
   switchExportTab('share');
   document.getElementById('export-overlay').classList.add('open');
@@ -966,9 +1063,11 @@ function doShare(text,successElId,titleText){
 function shareExport(){ doShare(exportShareText,'share-success',`${I18N[lang].months[currentMonth]} ${currentYear}`); }
 window.shareExport=shareExport;
 function copyExport(){
+  // Copy BOTH tables (summary + info) with a blank line between them
+  const combined = exportTsvSummary + '\n\n' + exportTsvInfo;
   const t=I18N[lang]; const show=()=>{ document.getElementById('copy-success').textContent=t.copiedMsg; setTimeout(()=>document.getElementById('copy-success').textContent='',2500); };
-  if(navigator.clipboard){ navigator.clipboard.writeText(exportTsvText).then(show).catch(fb); } else fb();
-  function fb(){ const ta=document.createElement('textarea'); ta.value=exportTsvText; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); show(); }
+  if(navigator.clipboard){ navigator.clipboard.writeText(combined).then(show).catch(fb); } else fb();
+  function fb(){ const ta=document.createElement('textarea'); ta.value=combined; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); show(); }
 }
 window.copyExport=copyExport;
 
