@@ -622,12 +622,102 @@ const HELP_HTML = {
     <p>La app usa formato polaco: <strong>punto como separador de miles</strong> y <strong>coma como decimal</strong>. Ejemplo: mil doscientos treinta y cuatro con cincuenta y seis céntimos se escribe <code>1.234,56</code>.</p>
   `,
 
-  // ── PL placeholder: same content as ES until traducción aprobada ──
+  // ── PL: pełna wersja polska ──
   pl: `
-    <p style="background:var(--surface2);padding:10px 14px;border-radius:8px;font-size:0.85rem;color:var(--ink2);margin-bottom:14px">
-      <em>Polska wersja w przygotowaniu — poniżej wersja hiszpańska tymczasowo.</em>
-    </p>
-    <!--PL_PLACEHOLDER-->
+    <h2>Czym jest ta aplikacja?</h2>
+    <p>Narzędzie do prowadzenia osobistych dochodów i wydatków miesiąc po miesiącu, z tymi samymi kategoriami, których używa centrum w swojej księgowości. Na koniec każdego miesiąca możesz wysłać swoje podsumowanie, aby zostało dołączone do ogólnego Excela centrum.</p>
+
+    <h2>Pierwsze logowanie</h2>
+    <ol>
+      <li><strong>Inicjały i PIN</strong>: wpisz swoje inicjały (np. MVM) i PIN, który zapamiętasz (minimum 4 znaki). Przy pierwszym logowaniu konto zostanie utworzone automatycznie.</li>
+      <li><strong>Ważne</strong>: PIN-u nie można odzyskać. Zapisz go w bezpiecznym miejscu. Jeśli go zapomnisz, stracisz dostęp do swoich danych.</li>
+      <li><strong>Język</strong>: za pierwszym razem wybierz hiszpański lub polski. Możesz to później zmienić przyciskiem 🌐 w nagłówku.</li>
+      <li><strong>Twoje dane są prywatne</strong>: nikt inny, nawet osoba zbierająca miesięczne podsumowania centrum, nie widzi Twoich wpisów. Widoczne jest tylko to, co sama wyślesz przy eksporcie miesiąca.</li>
+    </ol>
+
+    <h2>Konfiguracja początkowa (zalecane)</h2>
+    <p>Naciśnij <strong>⚙ Ustaw.</strong> i dodaj swoje banki lub konta (np. „SEB IG", „Gotówka", „PKO"). Pierwszy dodany będzie domyślny przy dodawaniu wpisów. To zaoszczędzi Ci czasu później.</p>
+
+    <h2>Codzienne użytkowanie</h2>
+
+    <h3>Dodawanie wpisu</h3>
+    <p>Naciśnij przycisk <strong>+</strong> w prawym dolnym rogu:</p>
+    <ul>
+      <li><strong>Typ</strong>: dochód lub wydatek.</li>
+      <li><strong>Kategoria</strong>: wybierz spośród kategorii centrum (poniżej wyjaśniam, jakie to kategorie).</li>
+      <li><strong>Szczegół</strong> (tylko w niektórych kategoriach): bardziej konkretna podkategoria.</li>
+      <li><strong>Kwota</strong>: wpisz liczbę z przecinkiem dziesiętnym (np. <code>1.234,56</code>).</li>
+      <li><strong>Data</strong>: domyślnie dzisiejsza.</li>
+      <li><strong>Bank/Płatność</strong>: bank lub „Gotówka".</li>
+      <li><strong>Notatka</strong>: opcjonalna, żeby pamiętać, czego dotyczył wpis.</li>
+    </ul>
+
+    <h3>Edycja lub usuwanie</h3>
+    <p>Przy każdym wpisie na liście zobaczysz ołówek ✎ (edytuj) i krzyżyk ✕ (usuń).</p>
+
+    <h3>Saldo miesiąca</h3>
+    <p>Na samej górze widzisz cztery linie:</p>
+    <ul>
+      <li><strong>Saldo początkowe</strong>: to, co miałaś na początku miesiąca.</li>
+      <li><strong>Łączne dochody</strong>.</li>
+      <li><strong>Łączne wydatki</strong>.</li>
+      <li><strong>Saldo końcowe</strong>: saldo początkowe plus dochody minus wydatki.</li>
+    </ul>
+    <p>Saldo końcowe każdego miesiąca jest automatycznie przenoszone jako saldo początkowe następnego miesiąca. Saldo styczniowe musisz wpisać ręcznie tylko za pierwszym razem.</p>
+
+    <h3>Zmiana miesiąca</h3>
+    <p>Użyj strzałek ‹ i › (znak wygląda jak obrócone „y", a nie <code>&lt;</code> ani <code>&gt;</code>) w nagłówku, aby przechodzić między miesiącami. Możesz cofać się do poprzednich miesięcy lub iść do przodu.</p>
+
+    <h2>Dwa eksporty — co robi każdy z nich</h2>
+    <p>To ważne, ponieważ robią różne rzeczy.</p>
+
+    <h3>📤 Eksportuj miesiąc</h3>
+    <p>Ma dwie zakładki:</p>
+    <ul>
+      <li><strong>📲 Wyślij</strong>: ładny i czytelny widok, przeznaczony do wysłania przez WhatsApp. Pokazuje wszystkie wpisy z miesiąca pojedynczo z datą, kategorią, kwotą i bankiem. Przydatny, żebyś sama zachowała kopię lub wysłała ją osobie prowadzącej księgowość.</li>
+      <li><strong>📊 Excel</strong>: dwie tabele przeznaczone do wklejenia bezpośrednio do Excela centrum:
+        <ul>
+          <li><strong>Zestawienie według kategorii</strong>: jedna linia dla każdej kategorii z łączną sumą miesiąca (nie pojawiają się pojedyncze wpisy, tylko suma według kategorii). Data to zawsze ostatni dzień miesiąca.</li>
+          <li><strong>Informacje</strong>: saldo z poprzedniego miesiąca i saldo na koniec miesiąca.</li>
+        </ul>
+        Naciskając „Skopiuj do schowka" kopiujesz obie tabele razem. Wklejasz je do Excela i wysyłasz do d lub do cl.
+      </li>
+    </ul>
+
+    <h3>📋 Zestawienie wydatków zwykłych</h3>
+    <p><strong>Pojawia się tylko wtedy, gdy w danym miesiącu zarejestrowałaś wydatki w kategorii „Wydatki zwykłe"</strong>.</p>
+    <p>Służy do konkretnego celu: kategoria „Wydatki zwykłe" w Excelu centrum występuje jako jedna linia z łączną sumą, ale wewnętrznie chcesz wiedzieć, co się na nią składa (zakupy, transport, jedzenie, książki itp.). Ten przycisk generuje szczegóły tylko tych zwykłych wpisów, żeby wysłać je do d, oddzielnie od ogólnego eksportu.</p>
+
+    <p><strong>Kluczowa różnica między „Eksportuj miesiąc" a „Zestawienie wydatków zwykłych":</strong></p>
+    <table>
+      <tr><th></th><th>Eksportuj miesiąc</th><th>Zestawienie wydatków zwykłych</th></tr>
+      <tr><td><strong>Co zawiera</strong></td><td>Wszystkie kategorie miesiąca, zsumowane</td><td>Tylko poszczególne wpisy z „Wydatków zwykłych"</td></tr>
+      <tr><td><strong>Format</strong></td><td>Sumy według kategorii (po 1 linii każda)</td><td>Każdy wpis osobno, z datą i notatką</td></tr>
+      <tr><td><strong>Odbiorca</strong></td><td>Do d lub do kogoś z cl (idzie do Excela centrum)</td><td>Do d (szczegóły wydatków zwykłych)</td></tr>
+    </table>
+    <div class="help-summary">Podsumowując: <strong>„Eksportuj miesiąc"</strong> to ogólna kwota, która idzie do Excela; <strong>„Zestawienie wydatków zwykłych"</strong> to szczegóły, które kryją się za linią „Wydatki zwykłe".</div>
+
+    <h2>Kategorie</h2>
+    <p><strong>Dochody:</strong></p>
+    <ul>
+      <li>Wynagrodzenie</li>
+      <li>Inne dochody osobiste</li>
+    </ul>
+    <p><strong>Wydatki:</strong></p>
+    <ul>
+      <li><strong>Wydatki zwykłe</strong> — codzienne (ze szczegółem: Zwykłe / Studia).</li>
+      <li><strong>Środki formacji</strong> — CRT, CA, inne, z odpowiednimi podróżami.</li>
+      <li><strong>Inne wydatki osobiste</strong> — medyczne, podróże, odzież.</li>
+      <li><strong>Zobowiązania</strong> — izba zawodowa, karta pobytu i ZUS, kredyty, mieszkanie (jeśli nie mieszkasz w ctr), pomoc rodzinie, samochód, fundusz emerytalny.</li>
+      <li><strong>Administracja</strong>.</li>
+      <li><strong>Inne</strong> — wszystko, co nie pasuje do powyższych.</li>
+    </ul>
+
+    <h2>Zamknięcie roku</h2>
+    <p>Przy pierwszym wejściu w styczniu aplikacja zapyta, czy chcesz zarchiwizować dane z poprzedniego roku i zacząć od nowa (zachowując saldo z grudnia jako saldo początkowe stycznia), czy zachować wszystko. Decyzja należy do Ciebie.</p>
+
+    <h2>Format liczb</h2>
+    <p>Aplikacja używa polskiego formatu: <strong>kropka jako separator tysięcy</strong> i <strong>przecinek jako separator dziesiętny</strong>. Przykład: tysiąc dwieście trzydzieści cztery i pięćdziesiąt sześć groszy zapisuje się <code>1.234,56</code>.</p>
   `
 };
 
@@ -790,12 +880,7 @@ window.closeConfig = closeConfig;
 function openHelp(){
   const t=I18N[lang];
   document.getElementById('help-title-text').textContent=t.helpTitle;
-  let html=HELP_HTML[lang]||HELP_HTML.es;
-  // PL placeholder: inject ES content beneath the "in preparation" notice
-  if(lang==='pl' && html.includes('<!--PL_PLACEHOLDER-->')){
-    html=html.replace('<!--PL_PLACEHOLDER-->', HELP_HTML.es);
-  }
-  document.getElementById('help-content').innerHTML=html;
+  document.getElementById('help-content').innerHTML=HELP_HTML[lang]||HELP_HTML.es;
   document.getElementById('help-overlay').classList.add('open');
   // scroll to top each open
   const modal=document.querySelector('#help-overlay .modal'); if(modal) modal.scrollTop=0;
