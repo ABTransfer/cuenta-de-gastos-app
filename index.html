@@ -1289,16 +1289,31 @@ window.closeExport=closeExport;
 function closeExportOutside(ev){ if(ev.target===document.getElementById('export-overlay')) closeExport(); }
 window.closeExportOutside=closeExportOutside;
 
+// Share helpers — text stored in module-level vars to avoid quote issues in innerHTML
+let _shareText='', _shareSuccessId='';
+function _doCopy(){
+  const ta=document.createElement('textarea'); ta.value=_shareText;
+  ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  document.execCommand('copy'); document.body.removeChild(ta);
+  const el=document.getElementById(_shareSuccessId);
+  if(el){ el.textContent=I18N[lang].copiedMsg; setTimeout(()=>{ if(el) el.textContent=''; },2500); }
+}
+window._doCopy=_doCopy;
+function _doWhatsApp(){
+  window.open('https://wa.me/?text='+encodeURIComponent(_shareText),'_blank');
+}
+window._doWhatsApp=_doWhatsApp;
+
 function doShare(text,successElId,titleText){
-  const t=I18N[lang];
-  const showMsg=(msg)=>{ const el=document.getElementById(successElId); el.innerHTML=msg; setTimeout(()=>el.innerHTML='',3500); };
-  const copiedMsg=t.copiedMsg;
-  showMsg(`<span style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:4px">
-    <button onclick="(function(){var ta=document.createElement('textarea');ta.value=${JSON.stringify(text)};ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.focus();ta.select();document.execCommand('copy');document.body.removeChild(ta);document.getElementById('${successElId}').textContent=${JSON.stringify(copiedMsg)};setTimeout(()=>document.getElementById('${successElId}').textContent='',2500);})()"
-      style="background:var(--accent);color:white;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:0.82rem;font-family:DM Sans,sans-serif;font-weight:600">📋 Copiar</button>
-    <button onclick="window.open('https://wa.me/?text='+encodeURIComponent(${JSON.stringify(text)}),'_blank')"
-      style="background:#25D366;color:white;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:0.82rem;font-family:DM Sans,sans-serif;font-weight:600">💬 WhatsApp</button>
-  </span>`);
+  _shareText=text; _shareSuccessId=successElId;
+  const el=document.getElementById(successElId);
+  if(!el) return;
+  el.innerHTML='<span style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:4px">'+
+    '<button onclick="_doCopy()" style="background:var(--accent);color:white;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:0.82rem;font-family:DM Sans,sans-serif;font-weight:600">📋 Copiar</button>'+
+    '<button onclick="_doWhatsApp()" style="background:#25D366;color:white;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:0.82rem;font-family:DM Sans,sans-serif;font-weight:600">💬 WhatsApp</button>'+
+    '</span>';
+  setTimeout(()=>{ if(el) el.innerHTML=''; },5000);
 }
 function shareExport(){ doShare(exportShareText,'share-success',`${I18N[lang].months[currentMonth]} ${currentYear}`); }
 window.shareExport=shareExport;
