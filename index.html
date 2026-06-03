@@ -247,7 +247,9 @@
       <span class="balance-label" id="lbl-initial">Saldo inicial</span>
       <div class="balance-input-wrap">
         <input type="text" inputmode="decimal" class="balance-inline-input" id="initial-balance" placeholder="0,00"
-          onblur="saveInitialBalance()" onkeydown="if(event.key==='Enter')this.blur()">
+          onblur="saveInitialBalance()" onkeydown="if(event.key==='Enter')this.blur()"
+          data-user-edited="false" oninput="this.dataset.userEdited='true'">
+        <button id="clear-initial-btn" onclick="clearInitialBalance()" title="Usar saldo del mes anterior" style="background:none;border:none;cursor:pointer;color:var(--border);font-size:0.9rem;padding:2px 4px;display:none" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--border)'">✕</button>
       </div>
     </div>
     <div class="balance-row">
@@ -1009,8 +1011,15 @@ function renderBalance(){
   const md=getMonthData(currentYear,currentMonth);
   const prevFinal=getPrevMonthFinal();
   const inp=document.getElementById('initial-balance');
-  if(prevFinal!==null&&md.initialBalance===null){ inp.value=fmt(prevFinal); inp.style.color='var(--ink2)'; }
-  else{ const s=parseAmt(md.initialBalance); inp.value=md.initialBalance!==null?fmt(isNaN(s)?0:s):''; inp.style.color='var(--ink)'; }
+  inp.dataset.userEdited='false'; // reset al renderizar para no guardar accidentalmente el valor heredado
+  const clearBtn=document.getElementById('clear-initial-btn');
+  if(prevFinal!==null&&md.initialBalance===null){
+    inp.value=fmt(prevFinal); inp.style.color='var(--ink2)';
+    if(clearBtn) clearBtn.style.display='none';
+  } else {
+    const s=parseAmt(md.initialBalance); inp.value=md.initialBalance!==null?fmt(isNaN(s)?0:s):''; inp.style.color='var(--ink)';
+    if(clearBtn) clearBtn.style.display=md.initialBalance!==null?'inline':'none';
+  }
   const iniVal=parseAmt(inp.value)||0;
   let inc=0,exp=0;
   (md.entries||[]).forEach(e=>{ if(e.type==='income') inc+=parseAmt(e.amount)||0; else exp+=parseAmt(e.amount)||0; });
@@ -1023,12 +1032,20 @@ function renderBalance(){
   fEl.style.fontSize='1.45rem';
 }
 function saveInitialBalance(){
-  const val=document.getElementById('initial-balance').value;
+  const inp=document.getElementById('initial-balance');
+  if(inp.dataset.userEdited!=='true') return;
+  inp.dataset.userEdited='false';
+  const val=inp.value;
   const parsed=parseAmt(val);
   getMonthData(currentYear,currentMonth).initialBalance=!isNaN(parsed)?parsed:null;
   saveData(); renderBalance();
 }
 window.saveInitialBalance=saveInitialBalance;
+function clearInitialBalance(){
+  getMonthData(currentYear,currentMonth).initialBalance=null;
+  saveData(); renderBalance();
+}
+window.clearInitialBalance=clearInitialBalance;
 
 // ══ ENTRIES ══
 function catDisplayName(catId,subcatId){
@@ -1289,31 +1306,16 @@ window.closeExport=closeExport;
 function closeExportOutside(ev){ if(ev.target===document.getElementById('export-overlay')) closeExport(); }
 window.closeExportOutside=closeExportOutside;
 
-// Share helpers — text stored in module-level vars to avoid quote issues in innerHTML
-let _shareText='', _shareSuccessId='';
-function _doCopy(){
-  const ta=document.createElement('textarea'); ta.value=_shareText;
-  ta.style.position='fixed'; ta.style.opacity='0';
-  document.body.appendChild(ta); ta.focus(); ta.select();
-  document.execCommand('copy'); document.body.removeChild(ta);
-  const el=document.getElementById(_shareSuccessId);
-  if(el){ el.textContent=I18N[lang].copiedMsg; setTimeout(()=>{ if(el) el.textContent=''; },2500); }
-}
-window._doCopy=_doCopy;
-function _doWhatsApp(){
-  window.open('https://wa.me/?text='+encodeURIComponent(_shareText),'_blank');
-}
-window._doWhatsApp=_doWhatsApp;
-
 function doShare(text,successElId,titleText){
-  _shareText=text; _shareSuccessId=successElId;
-  const el=document.getElementById(successElId);
-  if(!el) return;
-  el.innerHTML='<span style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:4px">'+
-    '<button onclick="_doCopy()" style="background:var(--accent);color:white;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:0.82rem;font-family:DM Sans,sans-serif;font-weight:600">📋 Copiar</button>'+
-    '<button onclick="_doWhatsApp()" style="background:#25D366;color:white;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:0.82rem;font-family:DM Sans,sans-serif;font-weight:600">💬 WhatsApp</button>'+
-    '</span>';
-  setTimeout(()=>{ if(el) el.innerHTML=''; },5000);
+  const t=I18N[lang];
+  const showMsg=(msg)=>{ const el=document.getElementById(successElId); el.innerHTML=msg; setTimeout(()=>el.innerHTML='',3500); };
+  const copiedMsg=t.copiedMsg;
+  showMsg(`<span style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:4px">
+    <button onclick="(function(){var ta=document.createElement('textarea');ta.value=${JSON.stringify(text)};ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.focus();ta.select();document.execCommand('copy');document.body.removeChild(ta);document.getElementById('${successElId}').textContent=${JSON.stringify(copiedMsg)};setTimeout(()=>document.getElementById('${successElId}').textContent='',2500);})()"
+      style="background:var(--accent);color:white;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:0.82rem;font-family:DM Sans,sans-serif;font-weight:600">📋 Copiar</button>
+    <button onclick="window.open('https://wa.me/?text='+encodeURIComponent(${JSON.stringify(text)}),'_blank')"
+      style="background:#25D366;color:white;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:0.82rem;font-family:DM Sans,sans-serif;font-weight:600">💬 WhatsApp</button>
+  </span>`);
 }
 function shareExport(){ doShare(exportShareText,'share-success',`${I18N[lang].months[currentMonth]} ${currentYear}`); }
 window.shareExport=shareExport;
