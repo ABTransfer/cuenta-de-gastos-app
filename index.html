@@ -1001,8 +1001,19 @@ function getPrevMonthFinal(){
   if(pd.initialBalance===null&&pd.entries.length===0) return null;
   return calcFinal(py,pm);
 }
-function calcFinal(y,m){
-  const d=getMonthData(y,m); const ini=parseAmt(d.initialBalance)||0;
+function calcFinal(y,m,depth){
+  if((depth||0)>24) return 0; // evitar bucle infinito
+  const d=getMonthData(y,m);
+  let ini;
+  if(d.initialBalance!==null){
+    ini=parseAmt(d.initialBalance)||0;
+  } else {
+    // Heredar del mes anterior recursivamente
+    let py=y,pm=m-1; if(pm<0){pm=11;py--;}
+    const pd=getMonthData(py,pm);
+    if(pd.initialBalance===null&&pd.entries.length===0) ini=0;
+    else ini=calcFinal(py,pm,(depth||0)+1);
+  }
   let inc=0,exp=0;
   d.entries.forEach(e=>{ if(e.type==='income') inc+=parseAmt(e.amount)||0; else exp+=parseAmt(e.amount)||0; });
   return ini+inc-exp;
