@@ -340,7 +340,10 @@
     <div id="export-view-share">
       <p class="detail-note" id="export-share-note" style="margin-bottom:10px"></p>
       <div class="export-box" id="export-box-share" style="font-size:0.8rem;line-height:1.8"></div>
-      <button class="copy-btn" onclick="shareExport()" id="share-btn" style="margin-top:12px"></button>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="copy-btn" onclick="shareExport()" id="share-btn" style="flex:1"></button>
+        <button class="copy-btn" onclick="waExport()" style="background:#25D366;flex:0 0 auto;padding:13px 18px;font-size:1.1rem">💬</button>
+      </div>
       <p class="copy-success" id="share-success"></p>
     </div>
     <div id="export-view-excel" style="display:none">
@@ -364,7 +367,10 @@
     </div>
     <p class="detail-note" id="ord-note" style="margin-bottom:10px"></p>
     <div class="export-box" id="ord-box" style="font-size:0.8rem;line-height:1.8"></div>
-    <button class="copy-btn" onclick="shareOrdExport()" id="ord-share-btn" style="margin-top:12px"></button>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="copy-btn" onclick="shareOrdExport()" id="ord-share-btn" style="flex:1"></button>
+      <button class="copy-btn" onclick="waOrdExport()" style="background:#25D366;flex:0 0 auto;padding:13px 18px;font-size:1.1rem">💬</button>
+    </div>
     <p class="copy-success" id="ord-success"></p>
   </div>
 </div>
@@ -485,7 +491,7 @@ const I18N={
     exportShareNote:'Vista legible para enviar por WhatsApp u otro.',
     exportExcelNote:'Resumen agrupado por categoría + información. Pega ambas tablas en Excel.',
     excelSummaryTitle:'Resumen por categoría',excelInfoTitle:'Información',
-    shareBtn:'📲 Enviar / Compartir',copyBtn:'Copiar al portapapeles',copiedMsg:'✓ ¡Copiado!',cash:'Efectivo',
+    shareBtn:'📋 Copiar',copyBtn:'Copiar al portapapeles',copiedMsg:'✓ ¡Copiado!',cash:'Efectivo',
     shareIniLabel:'Saldo inicial',shareFinLabel:'Saldo final',
     prevMonthBalance:'Saldo del mes anterior',endMonthBalance:'Saldo a final de mes',
     ordExportTitle:'Desglose gastos ordinarios',ordExportNote:'Detalle de gastos ordinarios del mes.',
@@ -513,7 +519,7 @@ const I18N={
     exportShareNote:'Czytelny widok do wysłania przez WhatsApp lub inny komunikator.',
     exportExcelNote:'Zestawienie według kategorii + informacje. Wklej obie tabele do Excela.',
     excelSummaryTitle:'Zestawienie według kategorii',excelInfoTitle:'Informacje',
-    shareBtn:'📲 Wyślij / Udostępnij',copyBtn:'Skopiuj do schowka',copiedMsg:'✓ Skopiowano!',cash:'Gotówka',
+    shareBtn:'📋 Kopiuj',copyBtn:'Skopiuj do schowka',copiedMsg:'✓ Skopiowano!',cash:'Gotówka',
     shareIniLabel:'Saldo początkowe',shareFinLabel:'Saldo końcowe',
     prevMonthBalance:'Saldo z poprzedniego miesiąca',endMonthBalance:'Saldo na koniec miesiąca',
     ordExportTitle:'Zestawienie wydatków zwykłych',ordExportNote:'Szczegóły zwykłych wydatków miesiąca.',
@@ -1317,27 +1323,25 @@ window.closeExport=closeExport;
 function closeExportOutside(ev){ if(ev.target===document.getElementById('export-overlay')) closeExport(); }
 window.closeExportOutside=closeExportOutside;
 
-function doShare(text,successElId){
+function copyText(text, successElId){
   const t=I18N[lang];
-  window._shareText=text; window._shareSuccessEl=successElId; window._copiedMsg=t.copiedMsg;
-  const el=document.getElementById(successElId);
-  el.innerHTML=`<span style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:4px">
-    <button onclick="_doShareCopy()" style="background:var(--accent);color:white;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:0.82rem;font-family:DM Sans,sans-serif;font-weight:600">📋 Copiar</button>
-    <button onclick="_doShareWA()" style="background:#25D366;color:white;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:0.82rem;font-family:DM Sans,sans-serif;font-weight:600">💬 WhatsApp</button>
-  </span>`;
-  setTimeout(()=>{ const e=document.getElementById(window._shareSuccessEl); if(e) e.innerHTML=''; },3500);
+  const show=()=>{ const el=document.getElementById(successElId); if(el){el.textContent=t.copiedMsg; setTimeout(()=>el.textContent='',2500);} };
+  if(navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(text).then(show).catch(()=>copyFallback(text,show));
+  } else { copyFallback(text,show); }
 }
-function _doShareCopy(){
-  const text=window._shareText; const elId=window._shareSuccessEl; const msg=window._copiedMsg;
-  const copy=()=>{ const ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.focus(); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); };
-  if(navigator.clipboard){ navigator.clipboard.writeText(text).catch(copy); } else copy();
-  const el=document.getElementById(elId); if(el){ el.textContent=msg; setTimeout(()=>el.textContent='',2500); }
+function copyFallback(text,show){
+  const ta=document.createElement('textarea'); ta.value=text;
+  ta.style.cssText='position:fixed;top:0;left:0;opacity:0;pointer-events:none';
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  try{ document.execCommand('copy'); show(); } catch(e){}
+  document.body.removeChild(ta);
 }
-function _doShareWA(){
-  window.open('https://wa.me/?text='+encodeURIComponent(window._shareText),'_blank');
-}
-function shareExport(){ doShare(exportShareText,'share-success'); }
+function openWA(text){ window.open('https://wa.me/?text='+encodeURIComponent(text),'_blank'); }
+function shareExport(){ copyText(exportShareText,'share-success'); }
 window.shareExport=shareExport;
+function waExport(){ openWA(exportShareText); }
+window.waExport=waExport;
 function copyExport(){
   // Copy BOTH tables (summary + info) with a blank line between them
   const combined = exportTsvSummary + '\n\n' + exportTsvInfo;
@@ -1376,8 +1380,10 @@ function openOrdExport(){
 window.openOrdExport=openOrdExport;
 function closeOrdExport(){ document.getElementById('ord-overlay').classList.remove('open'); }
 window.closeOrdExport=closeOrdExport;
-function shareOrdExport(){ doShare(ordShareText,'ord-success'); }
+function shareOrdExport(){ copyText(ordShareText,'ord-success'); }
 window.shareOrdExport=shareOrdExport;
+function waOrdExport(){ openWA(ordShareText); }
+window.waOrdExport=waOrdExport;
 
 // ══ YEAR-END ══
 function checkYearEnd(){
